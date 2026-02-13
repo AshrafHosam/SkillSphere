@@ -1,0 +1,11 @@
+d:\Projects\SkillSphere\src\SkillSphere.Domain\bin\Debug\net9.0\SkillSphere.Domain.deps.json
+d:\Projects\SkillSphere\src\SkillSphere.Domain\bin\Debug\net9.0\SkillSphere.Domain.dll
+d:\Projects\SkillSphere\src\SkillSphere.Domain\bin\Debug\net9.0\SkillSphere.Domain.pdb
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.GeneratedMSBuildEditorConfig.editorconfig
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.AssemblyInfoInputs.cache
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.AssemblyInfo.cs
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.csproj.CoreCompileInputs.cache
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.dll
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\refint\SkillSphere.Domain.dll
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\SkillSphere.Domain.pdb
+d:\Projects\SkillSphere\src\SkillSphere.Domain\obj\Debug\net9.0\ref\SkillSphere.Domain.dll

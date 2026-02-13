@@ -1,0 +1,61 @@
+<div class="app-container" *ngIf="auth.isLoggedIn; else loginView">
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>SkillSphere</h2>
+      <small>{{ auth.currentUser?.user?.schoolTenantId ? 'School Portal' : 'Platform Admin' }}</small>
+    </div>
+    <ul class="nav-links">
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li *ngIf="auth.userRole === 'PlatformSuperAdmin'">
+        <a routerLink="/tenants" routerLinkActive="active">Schools</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager','PlatformSuperAdmin'].includes(auth.userRole!)">
+        <a routerLink="/users" routerLinkActive="active">Users</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/academic/grades" routerLinkActive="active">Grades</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/academic/classes" routerLinkActive="active">Classes</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/academic/subjects" routerLinkActive="active">Subjects</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/academic/semesters" routerLinkActive="active">Semesters</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/assignments" routerLinkActive="active">Assignments</a>
+      </li>
+      <li *ngIf="['SchoolAdmin','SchoolManager','Teacher'].includes(auth.userRole!)">
+        <a routerLink="/timetable" routerLinkActive="active">Timetable</a>
+      </li>
+      <li *ngIf="['Teacher','TeacherSupervisor','SchoolManager'].includes(auth.userRole!)">
+        <a routerLink="/attendance" routerLinkActive="active">Attendance</a>
+      </li>
+      <li *ngIf="['Teacher','TeacherSupervisor','SchoolManager','Parent'].includes(auth.userRole!)">
+        <a routerLink="/grades-records" routerLinkActive="active">Grade Records</a>
+      </li>
+      <li *ngIf="['Teacher','TeacherSupervisor','SchoolManager','Parent'].includes(auth.userRole!)">
+        <a routerLink="/weekly-reports" routerLinkActive="active">Weekly Reports</a>
+      </li>
+      <li *ngIf="['Teacher','TeacherSupervisor','SchoolManager','SchoolAdmin'].includes(auth.userRole!)">
+        <a routerLink="/internal-reports" routerLinkActive="active">Internal Reports</a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span>{{ auth.currentUser?.user?.fullName }}</span>
+        <small>{{ auth.currentUser?.user?.role }}</small>
+      </div>
+      <button (click)="logout()" class="btn-logout">Logout</button>
+    </div>
+  </nav>
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+
+<ng-template #loginView>
+  <router-outlet></router-outlet>
+</ng-template>
