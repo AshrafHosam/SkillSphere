@@ -15,8 +15,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<SkillSphereDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
-                npgsqlOptions => npgsqlOptions.MigrationsAssembly(typeof(SkillSphereDbContext).Assembly.FullName)));
+            options.UseSqlite(configuration.GetConnectionString("DefaultConnection"),
+                sqliteOptions => sqliteOptions.MigrationsAssembly(typeof(SkillSphereDbContext).Assembly.FullName)));
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

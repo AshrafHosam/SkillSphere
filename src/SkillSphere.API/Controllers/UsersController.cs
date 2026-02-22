@@ -25,8 +25,7 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUsers([FromQuery] UserRole? role, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
-        if (_currentUser.SchoolTenantId == null) return Forbid();
-        var result = await _userService.GetUsersAsync(_currentUser.SchoolTenantId.Value, role, new PaginationParams { Page = page, PageSize = pageSize }, ct);
+        var result = await _userService.GetUsersAsync(_currentUser.SchoolTenantId, role, new PaginationParams { Page = page, PageSize = pageSize }, ct);
         return Ok(result.Data);
     }
 

@@ -10,6 +10,7 @@ public interface ITenantService
     Task<Result<SchoolTenantDto>> CreateAsync(CreateSchoolTenantRequest request, CancellationToken ct = default);
     Task<Result<SchoolTenantDto>> UpdateAsync(Guid id, UpdateSchoolTenantRequest request, CancellationToken ct = default);
     Task<Result> DeactivateAsync(Guid id, CancellationToken ct = default);
+    Task<Result> ReactivateAsync(Guid id, CancellationToken ct = default);
     Task<Result<List<FeatureFlagDto>>> GetFeatureFlagsAsync(Guid tenantId, CancellationToken ct = default);
     Task<Result<FeatureFlagDto>> UpdateFeatureFlagAsync(Guid tenantId, UpdateFeatureFlagRequest request, CancellationToken ct = default);
 }

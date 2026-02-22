@@ -13,8 +13,10 @@ using SkillSphere.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Serilog
-builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
+try
+{
+// Note: Serilog disabled due to .NET 9 compatibility issue — using built-in logging
+// builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
 // Layers
 builder.Services.AddApplication();
@@ -116,4 +118,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+Console.WriteLine("=== SkillSphere API is ready ===");
 app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"=== FATAL STARTUP ERROR: {ex} ===");
+    Environment.Exit(1);
+}

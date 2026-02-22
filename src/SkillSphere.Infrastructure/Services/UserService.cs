@@ -22,9 +22,10 @@ public class UserService : IUserService
             : Result<UserListDto>.Success(MapToListDto(user));
     }
 
-    public async Task<Result<PagedResult<UserListDto>>> GetUsersAsync(Guid tenantId, UserRole? role, PaginationParams p, CancellationToken ct = default)
+    public async Task<Result<PagedResult<UserListDto>>> GetUsersAsync(Guid? tenantId, UserRole? role, PaginationParams p, CancellationToken ct = default)
     {
-        var query = _db.ApplicationUsers.Where(u => u.SchoolTenantId == tenantId);
+        var query = _db.ApplicationUsers.AsQueryable();
+        if (tenantId.HasValue) query = query.Where(u => u.SchoolTenantId == tenantId.Value);
         if (role.HasValue) query = query.Where(u => u.Role == role.Value);
 
         var total = await query.CountAsync(ct);

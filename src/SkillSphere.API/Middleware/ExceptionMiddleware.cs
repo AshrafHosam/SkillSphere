@@ -31,11 +31,13 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
+            _logger.LogError(ex, "Unhandled exception on {Method} {Path}", context.Request.Method, context.Request.Path);
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = new { error = "An unexpected error occurred.", details = _env.IsDevelopment() ? ex.Message : "" };
+            var response = _env.IsDevelopment()
+                ? new { error = ex.Message, details = ex.InnerException?.Message ?? "", stackTrace = ex.StackTrace ?? "" }
+                : new { error = "An unexpected error occurred.", details = "", stackTrace = "" };
             await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }

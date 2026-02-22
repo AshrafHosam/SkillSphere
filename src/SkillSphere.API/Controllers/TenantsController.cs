@@ -49,6 +49,13 @@ public class TenantsController : ControllerBase
         return result.IsSuccess ? NoContent() : BadRequest(new { error = result.Error });
     }
 
+    [HttpPost("{id:guid}/reactivate")]
+    public async Task<IActionResult> Reactivate(Guid id, CancellationToken ct)
+    {
+        var result = await _tenantService.ReactivateAsync(id, ct);
+        return result.IsSuccess ? NoContent() : BadRequest(new { error = result.Error });
+    }
+
     [HttpGet("{id:guid}/features")]
     public async Task<IActionResult> GetFeatures(Guid id, CancellationToken ct)
     {

@@ -25,6 +25,7 @@ export class TenantService {
   create(req: CreateTenantRequest): Observable<TenantDto> { return this.api.post('tenants', req); }
   update(id: string, req: UpdateTenantRequest): Observable<TenantDto> { return this.api.put(`tenants/${id}`, req); }
   deactivate(id: string): Observable<void> { return this.api.delete(`tenants/${id}`); }
+  reactivate(id: string): Observable<void> { return this.api.post(`tenants/${id}/reactivate`); }
   getFeatures(id: string): Observable<FeatureFlagDto[]> { return this.api.get(`tenants/${id}/features`); }
   updateFeatures(id: string, features: FeatureFlagDto[]): Observable<void> { return this.api.put(`tenants/${id}/features`, features); }
 }
