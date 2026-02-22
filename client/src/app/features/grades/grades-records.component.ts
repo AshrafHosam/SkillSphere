@@ -11,42 +11,46 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
   standalone: true,
   imports: [CommonModule, FormsModule, LocalDatePipe],
   template: `
-    <div class="page-header"><h1>Grade Records</h1></div>
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+      <h1 class="text-lg font-semibold text-gray-800 dark:text-white/90">Grade Records</h1>
+    </div>
 
-    <div class="tabs">
-      <button [class.active]="tab==='grades'" (click)="tab='grades'">Grade Records</button>
-      <button [class.active]="tab==='behavior'" (click)="tab='behavior'">Behavior Feedback</button>
+    <div class="mb-4 flex gap-2">
+      <button (click)="tab='grades'"
+        [ngClass]="tab==='grades' ? 'tab-active' : 'tab-inactive'">Grade Records</button>
+      <button (click)="tab='behavior'"
+        [ngClass]="tab==='behavior' ? 'tab-active' : 'tab-inactive'">Behavior Feedback</button>
     </div>
 
     <!-- ====== GRADE RECORDS TAB ====== -->
     <ng-container *ngIf="tab==='grades'">
       <!-- ADD GRADE FORM (Teacher only) -->
-      <div class="card form-card" *ngIf="isTeacher">
-        <div class="form-header" (click)="showGradeForm=!showGradeForm">
-          <h3>+ Add Grade Record</h3>
-          <span class="toggle">{{showGradeForm ? '▲' : '▼'}}</span>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="isTeacher">
+        <div class="flex cursor-pointer items-center justify-between" (click)="showGradeForm=!showGradeForm">
+          <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">+ Add Grade Record</h3>
+          <span class="text-gray-400">{{showGradeForm ? '▲' : '▼'}}</span>
         </div>
-        <div *ngIf="showGradeForm" class="form-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Assignment (Subject / Class)</label>
-              <select [(ngModel)]="gradeForm.assignmentId" (ngModelChange)="onGradeAssignmentChange()">
+        <div *ngIf="showGradeForm" class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Assignment (Subject / Class)</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.assignmentId" (ngModelChange)="onGradeAssignmentChange()">
                 <option value="">-- Select --</option>
                 <option *ngFor="let a of teacherAssignments" [value]="a.id">
                   {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
                 </option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Student</label>
-              <select [(ngModel)]="gradeForm.studentProfileId">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Student</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.studentProfileId">
                 <option value="">-- Select --</option>
                 <option *ngFor="let s of gradeStudents" [value]="s.studentProfileId">{{s.studentName}}</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Assessment Type</label>
-              <select [(ngModel)]="gradeForm.assessmentType">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Assessment Type</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.assessmentType">
                 <option value="">-- Select --</option>
                 <option value="Quiz">Quiz</option>
                 <option value="Test">Test</option>
@@ -58,81 +62,92 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
               </select>
             </div>
           </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Score</label>
-              <input type="number" [(ngModel)]="gradeForm.score" placeholder="e.g. 85" />
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Score</label>
+              <input type="number" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.score" placeholder="e.g. 85" />
             </div>
-            <div class="form-group">
-              <label>Max Score</label>
-              <input type="number" [(ngModel)]="gradeForm.maxScore" placeholder="e.g. 100" />
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Max Score</label>
+              <input type="number" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.maxScore" placeholder="e.g. 100" />
             </div>
-            <div class="form-group">
-              <label>Letter Grade (optional)</label>
-              <select [(ngModel)]="gradeForm.letterGrade">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Letter Grade (optional)</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.letterGrade">
                 <option value="">-- Select --</option>
                 <option *ngFor="let g of letterGrades" [value]="g">{{g}}</option>
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label>Notes (optional)</label>
-            <textarea [(ngModel)]="gradeForm.notes" rows="2" placeholder="Additional notes..."></textarea>
+          <div class="mb-3">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Notes (optional)</label>
+            <textarea class="w-full resize-y rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="gradeForm.notes" rows="2" placeholder="Additional notes..."></textarea>
           </div>
-          <div class="form-actions">
-            <button class="btn-primary" (click)="submitGradeRecord()" [disabled]="gradeSubmitting">
+          <div class="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+            <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="submitGradeRecord()" [disabled]="gradeSubmitting">
               {{gradeSubmitting ? 'Saving...' : 'Save Grade Record'}}
             </button>
           </div>
-          <p *ngIf="gradeSuccess" class="success-msg">Grade record saved!</p>
-          <p *ngIf="gradeError" class="error-msg">{{gradeError}}</p>
+          <p *ngIf="gradeSuccess" class="mt-3 text-sm font-semibold text-success-600 dark:text-success-400">Grade record saved!</p>
+          <p *ngIf="gradeError" class="mt-3 text-sm font-semibold text-error-600 dark:text-error-400">{{gradeError}}</p>
         </div>
       </div>
 
       <!-- EXISTING RECORDS TABLE -->
-      <div class="card">
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Subject</th><th>Score</th><th>Grade</th><th>Assessment</th><th>Date</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let r of gradeRecords">
-              <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.score}}/{{r.maxScore}}</td>
-              <td>{{r.letterGrade}}</td><td>{{r.assessmentType}}</td><td>{{r.recordedDate | localDate:'mediumDate'}}</td>
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="overflow-x-auto"><table class="w-full table-auto">
+          <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Subject</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Score</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Grade</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Assessment</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let r of gradeRecords" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.studentName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.subjectName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.score}}/{{r.maxScore}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.letterGrade}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.assessmentType}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.recordedDate | localDate:'mediumDate'}}</td>
             </tr>
-            <tr *ngIf="!gradeRecords.length"><td colspan="6" class="empty-row">No grade records found.</td></tr>
+            <tr *ngIf="!gradeRecords.length"><td colspan="6" class="px-5 py-8 text-center text-sm text-gray-400">No grade records found.</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </ng-container>
 
     <!-- ====== BEHAVIOR FEEDBACK TAB ====== -->
     <ng-container *ngIf="tab==='behavior'">
       <!-- ADD BEHAVIOR FEEDBACK FORM (Teacher only) -->
-      <div class="card form-card" *ngIf="isTeacher">
-        <div class="form-header" (click)="showBehaviorForm=!showBehaviorForm">
-          <h3>+ Add Behavior Feedback</h3>
-          <span class="toggle">{{showBehaviorForm ? '▲' : '▼'}}</span>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="isTeacher">
+        <div class="flex cursor-pointer items-center justify-between" (click)="showBehaviorForm=!showBehaviorForm">
+          <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">+ Add Behavior Feedback</h3>
+          <span class="text-gray-400">{{showBehaviorForm ? '▲' : '▼'}}</span>
         </div>
-        <div *ngIf="showBehaviorForm" class="form-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Assignment (Subject / Class)</label>
-              <select [(ngModel)]="behaviorForm.assignmentId" (ngModelChange)="onBehaviorAssignmentChange()">
+        <div *ngIf="showBehaviorForm" class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Assignment (Subject / Class)</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="behaviorForm.assignmentId" (ngModelChange)="onBehaviorAssignmentChange()">
                 <option value="">-- Select --</option>
                 <option *ngFor="let a of teacherAssignments" [value]="a.id">
                   {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
                 </option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Student</label>
-              <select [(ngModel)]="behaviorForm.studentProfileId">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Student</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="behaviorForm.studentProfileId">
                 <option value="">-- Select --</option>
                 <option *ngFor="let s of behaviorStudents" [value]="s.studentProfileId">{{s.studentName}}</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Category</label>
-              <select [(ngModel)]="behaviorForm.category">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Category</label>
+              <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="behaviorForm.category">
                 <option value="">-- Select --</option>
                 <option value="Participation">Participation</option>
                 <option value="Discipline">Discipline</option>
@@ -144,68 +159,55 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
               </select>
             </div>
           </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Rating (1-5)</label>
-              <div class="rating-buttons">
-                <button *ngFor="let n of [1,2,3,4,5]" [class.selected]="behaviorForm.rating===n"
-                  (click)="behaviorForm.rating=n" class="rating-btn">{{n}}</button>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Rating (1-5)</label>
+              <div class="flex gap-1">
+                <button *ngFor="let n of [1,2,3,4,5]" (click)="behaviorForm.rating=n"
+                  class="rating-btn"
+                  [ngClass]="behaviorForm.rating===n ? 'rating-btn-active' : 'rating-btn-inactive'">{{n}}</button>
               </div>
             </div>
-            <div class="form-group" style="grid-column: span 2">
-              <label>Description (optional)</label>
-              <textarea [(ngModel)]="behaviorForm.description" rows="2" placeholder="Describe the behavior..."></textarea>
+            <div class="sm:col-span-2">
+              <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Description (optional)</label>
+              <textarea class="w-full resize-y rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="behaviorForm.description" rows="2" placeholder="Describe the behavior..."></textarea>
             </div>
           </div>
-          <div class="form-actions">
-            <button class="btn-primary" (click)="submitBehaviorFeedback()" [disabled]="behaviorSubmitting">
+          <div class="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+            <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="submitBehaviorFeedback()" [disabled]="behaviorSubmitting">
               {{behaviorSubmitting ? 'Saving...' : 'Save Feedback'}}
             </button>
           </div>
-          <p *ngIf="behaviorSuccess" class="success-msg">Behavior feedback saved!</p>
-          <p *ngIf="behaviorError" class="error-msg">{{behaviorError}}</p>
+          <p *ngIf="behaviorSuccess" class="mt-3 text-sm font-semibold text-success-600 dark:text-success-400">Behavior feedback saved!</p>
+          <p *ngIf="behaviorError" class="mt-3 text-sm font-semibold text-error-600 dark:text-error-400">{{behaviorError}}</p>
         </div>
       </div>
 
       <!-- EXISTING BEHAVIOR TABLE -->
-      <div class="card">
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Category</th><th>Rating</th><th>Description</th><th>Date</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let b of behaviorFeedback">
-              <td>{{b.studentName}}</td><td>{{b.category}}</td><td>{{b.rating}}/5</td><td>{{b.description}}</td><td>{{b.recordedDate | localDate:'mediumDate'}}</td>
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="overflow-x-auto"><table class="w-full table-auto">
+          <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Category</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Rating</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Description</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Date</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let b of behaviorFeedback" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{b.studentName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{b.category}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{b.rating}}/5</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{b.description}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{b.recordedDate | localDate:'mediumDate'}}</td>
             </tr>
-            <tr *ngIf="!behaviorFeedback.length"><td colspan="5" class="empty-row">No behavior feedback found.</td></tr>
+            <tr *ngIf="!behaviorFeedback.length"><td colspan="5" class="px-5 py-8 text-center text-sm text-gray-400">No behavior feedback found.</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </ng-container>
   `,
-  styles: [`
-    .page-header{margin-bottom:1.5rem}.page-header h1{margin:0}
-    .tabs{display:flex;gap:.5rem;margin-bottom:1rem}
-    .tabs button{padding:.5rem 1rem;border:1px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer}
-    .tabs button.active{background:#0f172a;color:white;border-color:#0f172a}
-    .card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}
-    .form-card{border:1px solid #e2e8f0}
-    .form-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .form-header h3{margin:0;color:#0f172a;font-size:1rem}.toggle{color:#64748b}
-    .form-body{margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:.75rem}
-    .form-group{margin-bottom:.5rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}
-    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:.875rem}
-    .form-group textarea{resize:vertical}
-    .form-actions{display:flex;justify-content:flex-end;margin-top:.75rem}
-    .btn-primary{padding:.5rem 1.25rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.875rem}
-    .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-    .rating-buttons{display:flex;gap:.25rem}
-    .rating-btn{width:36px;height:36px;border:2px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer;font-weight:700;font-size:.875rem}
-    .rating-btn.selected{background:#0f172a;color:white;border-color:#0f172a}
-    .data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}
-    .data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}
-    .empty-row{text-align:center;color:#94a3b8;font-style:italic}
-    .success-msg{color:#166534;font-weight:600;margin:.5rem 0 0}.error-msg{color:#991b1b;font-weight:600;margin:.5rem 0 0}
-  `]
+  styles: []
 })
 export class GradesRecordsComponent implements OnInit {
   tab = 'grades';

@@ -18,136 +18,146 @@ interface StudentEntry {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-header">
-      <h1>Attendance</h1>
-      <div class="tab-buttons" *ngIf="isTeacher">
-        <button [class.active]="mode==='submit'" (click)="mode='submit'">Submit Attendance</button>
-        <button [class.active]="mode==='view'" (click)="mode='view'">View Records</button>
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+      <h1 class="text-lg font-semibold text-gray-800 dark:text-white/90">Attendance</h1>
+      <div class="flex gap-2" *ngIf="isTeacher">
+        <button (click)="mode='submit'"
+          [ngClass]="mode==='submit' ? 'tab-active' : 'tab-inactive'">Submit Attendance</button>
+        <button (click)="mode='view'"
+          [ngClass]="mode==='view' ? 'tab-active' : 'tab-inactive'">View Records</button>
       </div>
     </div>
 
     <!-- ========== TEACHER: SUBMIT ATTENDANCE ========== -->
     <ng-container *ngIf="isTeacher && mode==='submit'">
-      <div class="card">
-        <h3>Submit Attendance</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Assignment (Subject / Class)</label>
-            <select [(ngModel)]="selectedAssignmentId" (ngModelChange)="onAssignmentChange()">
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Submit Attendance</h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Assignment (Subject / Class)</label>
+            <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="selectedAssignmentId" (ngModelChange)="onAssignmentChange()">
               <option value="">-- Select --</option>
               <option *ngFor="let a of teacherAssignments" [value]="a.id">
                 {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
               </option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Date</label>
-            <input type="date" [(ngModel)]="submitDate" (ngModelChange)="checkExistingAttendance()" />
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date</label>
+            <input type="date" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="submitDate" (ngModelChange)="checkExistingAttendance()" />
           </div>
-          <div class="form-group">
-            <label>Session Time (optional)</label>
-            <input type="time" [(ngModel)]="submitSessionTime" />
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Session Time (optional)</label>
+            <input type="time" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="submitSessionTime" />
           </div>
         </div>
       </div>
 
-      <div class="card info-card" *ngIf="alreadySubmitted">
-        <p class="info-msg">Attendance for this class/subject/date has already been submitted.</p>
+      <div class="mb-4 rounded-2xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-500/10" *ngIf="alreadySubmitted">
+        <p class="text-sm font-medium text-brand-700 dark:text-brand-300">Attendance for this class/subject/date has already been submitted.</p>
       </div>
 
-      <div class="card" *ngIf="studentEntries.length && !alreadySubmitted">
-        <div class="bulk-actions">
-          <span class="student-count">{{studentEntries.length}} students</span>
-          <button class="btn-sm" (click)="markAll('Present')">All Present</button>
-          <button class="btn-sm" (click)="markAll('Absent')">All Absent</button>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="studentEntries.length && !alreadySubmitted">
+        <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3 dark:border-gray-800">
+          <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">{{studentEntries.length}} students</span>
+          <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" (click)="markAll('Present')">All Present</button>
+          <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" (click)="markAll('Absent')">All Absent</button>
         </div>
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Status</th><th>Notes</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let s of studentEntries; let i = index">
-              <td class="student-name">{{s.studentName}}</td>
-              <td>
-                <div class="status-buttons">
-                  <button *ngFor="let st of statuses" [class]="'status-btn badge-' + st.toLowerCase()"
-                    [class.selected]="s.status === st" (click)="s.status = st">{{st}}</button>
-                </div>
-              </td>
-              <td><input type="text" [(ngModel)]="s.notes" placeholder="Optional notes" class="notes-input" /></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="submit-bar">
-          <button class="btn-primary" (click)="submitAttendance()" [disabled]="submitting">
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="overflow-x-auto"><table class="w-full table-auto">
+            <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Notes</th>
+            </tr></thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr *ngFor="let s of studentEntries; let i = index" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                <td class="px-5 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">{{s.studentName}}</td>
+                <td class="px-5 py-3">
+                  <div class="flex gap-1">
+                    <button *ngFor="let st of statuses" (click)="s.status = st"
+                      class="status-btn"
+                      [ngClass]="s.status === st
+                        ? (st === 'Present' ? 'status-btn-success'
+                          : st === 'Absent' ? 'status-btn-error'
+                          : st === 'Late' ? 'status-btn-warning'
+                          : 'status-btn-gray')
+                        : 'status-btn-inactive'">{{st}}</button>
+                  </div>
+                </td>
+                <td class="px-5 py-3">
+                  <input type="text" [(ngModel)]="s.notes" placeholder="Optional notes" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+                </td>
+              </tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+          <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60" (click)="submitAttendance()" [disabled]="submitting">
             {{submitting ? 'Submitting...' : 'Submit Attendance'}}
           </button>
         </div>
       </div>
 
-      <div class="card" *ngIf="submitSuccess">
-        <p class="success-msg">Attendance submitted successfully!</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="submitSuccess">
+        <p class="text-sm font-semibold text-success-600 dark:text-success-400">Attendance submitted successfully!</p>
       </div>
-      <div class="card" *ngIf="submitError">
-        <p class="error-msg">{{submitError}}</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="submitError">
+        <p class="text-sm font-semibold text-error-600 dark:text-error-400">{{submitError}}</p>
       </div>
     </ng-container>
 
     <!-- ========== VIEW ATTENDANCE RECORDS ========== -->
     <ng-container *ngIf="!isTeacher || mode==='view'">
-      <div class="card">
-        <div class="form-grid">
-          <div class="form-group"><label>Date</label><input type="date" [(ngModel)]="filterDate" /></div>
-          <div class="form-group" style="align-self:end"><button class="btn-primary" (click)="loadAttendance()">Load</button></div>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-3">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Date</label>
+            <input type="date" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="filterDate" />
+          </div>
+          <div class="self-end">
+            <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600" (click)="loadAttendance()">Load</button>
+          </div>
         </div>
       </div>
 
-      <div class="card" *ngIf="records.length">
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Subject</th><th>Class</th><th>Status</th><th>Notes</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let r of records">
-              <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.classSectionName}}</td>
-              <td><span [class]="'badge-' + r.status.toLowerCase()">{{r.status}}</span></td>
-              <td>{{r.notes}}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="records.length">
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+          <div class="overflow-x-auto"><table class="w-full table-auto">
+            <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Subject</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Class</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Notes</th>
+            </tr></thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr *ngFor="let r of records" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.studentName}}</td>
+                <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.subjectName}}</td>
+                <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.classSectionName}}</td>
+                <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <span class="badge"
+                    [ngClass]="{
+                      'badge-success': r.status.toLowerCase() === 'present',
+                      'badge-error': r.status.toLowerCase() === 'absent',
+                      'badge-warning': r.status.toLowerCase() === 'late',
+                      'badge-gray': r.status.toLowerCase() === 'excused'
+                    }">{{r.status}}</span>
+                </td>
+                <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{r.notes}}</td>
+              </tr>
+            </tbody>
+          </table></div>
+        </div>
       </div>
 
-      <div class="card" *ngIf="!records.length && filterDate">
-        <p>No attendance records for this date.</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="!records.length && filterDate">
+        <p class="text-sm text-gray-400">No attendance records for this date.</p>
       </div>
     </ng-container>
   `,
-  styles: [`
-    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}.page-header h1{margin:0}
-    .tab-buttons{display:flex;gap:.5rem}
-    .tab-buttons button{padding:.5rem 1rem;border:1px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer;font-size:.875rem}
-    .tab-buttons button.active{background:#0f172a;color:white;border-color:#0f172a}
-    .btn-primary{padding:.5rem 1.25rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.875rem}
-    .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-    .btn-sm{padding:.25rem .75rem;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:.8rem;background:white}
-    .card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}
-    .card h3{margin:0 0 1rem;color:#0f172a}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:end}
-    .form-group{margin-bottom:.5rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}
-    .form-group input,.form-group select{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:.875rem}
-    .bulk-actions{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #f1f5f9}
-    .student-count{font-weight:600;color:#64748b;font-size:.875rem}
-    .data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}
-    .data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}
-    .student-name{font-weight:500}
-    .status-buttons{display:flex;gap:.25rem}
-    .status-btn{padding:.25rem .5rem;border:2px solid transparent;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;opacity:.5;transition:all .15s}
-    .status-btn.selected{opacity:1;border-color:#0f172a;transform:scale(1.05)}
-    .badge-present,.badge-Present{background:#dcfce7;color:#166534}
-    .badge-absent,.badge-Absent{background:#fef2f2;color:#991b1b}
-    .badge-late,.badge-Late{background:#fef3c7;color:#92400e}
-    .badge-excused,.badge-Excused{background:#f1f5f9;color:#475569}
-    .notes-input{padding:.35rem .5rem;border:1px solid #e2e8f0;border-radius:4px;width:100%;box-sizing:border-box;font-size:.8rem}
-    .submit-bar{display:flex;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9}
-    .success-msg{color:#166534;font-weight:600;margin:0}.error-msg{color:#991b1b;font-weight:600;margin:0}
-    .info-card{background:#eff6ff}.info-msg{color:#1e40af;font-weight:500;margin:0}
-  `]
+  styles: []
 })
 export class AttendanceComponent implements OnInit {
   // View mode

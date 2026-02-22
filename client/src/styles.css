@@ -1,0 +1,325 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+layer(base);
+
+@import "tailwindcss";
+
+@source "./app";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-*: initial;
+  --font-outfit: Outfit, sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 2000px;
+
+  --text-title-2xl: 72px;
+  --text-title-2xl--line-height: 90px;
+  --text-title-xl: 60px;
+  --text-title-xl--line-height: 72px;
+  --text-title-lg: 48px;
+  --text-title-lg--line-height: 60px;
+  --text-title-md: 36px;
+  --text-title-md--line-height: 44px;
+  --text-title-sm: 30px;
+  --text-title-sm--line-height: 38px;
+  --text-theme-xl: 20px;
+  --text-theme-xl--line-height: 30px;
+  --text-theme-sm: 14px;
+  --text-theme-sm--line-height: 20px;
+  --text-theme-xs: 12px;
+  --text-theme-xs--line-height: 18px;
+
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+  --color-black: #101828;
+
+  --color-brand-25: #f2f7ff;
+  --color-brand-50: #ecf3ff;
+  --color-brand-100: #dde9ff;
+  --color-brand-200: #c2d6ff;
+  --color-brand-300: #9cb9ff;
+  --color-brand-400: #7592ff;
+  --color-brand-500: #465fff;
+  --color-brand-600: #3641f5;
+  --color-brand-700: #2a31d8;
+  --color-brand-800: #252dae;
+  --color-brand-900: #262e89;
+  --color-brand-950: #161950;
+
+  --color-blue-light-25: #f5fbff;
+  --color-blue-light-50: #f0f9ff;
+  --color-blue-light-100: #e0f2fe;
+  --color-blue-light-200: #b9e6fe;
+  --color-blue-light-300: #7cd4fd;
+  --color-blue-light-400: #36bffa;
+  --color-blue-light-500: #0ba5ec;
+
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #e4e7ec;
+  --color-gray-300: #d0d5dd;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #1d2939;
+  --color-gray-900: #101828;
+  --color-gray-950: #0c111d;
+  --color-gray-dark: #1a2231;
+
+  --color-orange-25: #fffaf5;
+  --color-orange-50: #fff6ed;
+  --color-orange-100: #ffead5;
+  --color-orange-200: #fddcab;
+  --color-orange-300: #feb273;
+  --color-orange-400: #fd853a;
+  --color-orange-500: #fb6514;
+  --color-orange-600: #ec4a0a;
+  --color-orange-700: #c4320a;
+
+  --color-success-25: #f6fef9;
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d1fadf;
+  --color-success-200: #a6f4c5;
+  --color-success-300: #6ce9a6;
+  --color-success-400: #32d583;
+  --color-success-500: #12b76a;
+  --color-success-600: #039855;
+  --color-success-700: #027a48;
+  --color-success-800: #05603a;
+
+  --color-error-25: #fffbfa;
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-200: #fecdca;
+  --color-error-300: #fda29b;
+  --color-error-400: #f97066;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+  --color-error-700: #b42318;
+
+  --color-warning-25: #fffcf5;
+  --color-warning-50: #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-200: #fedf89;
+  --color-warning-300: #fec84b;
+  --color-warning-400: #fdb022;
+  --color-warning-500: #f79009;
+  --color-warning-600: #dc6803;
+  --color-warning-700: #b54708;
+
+  --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1),
+    0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-theme-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-theme-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1),
+    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
+    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+
+  --z-index-1: 1;
+  --z-index-9: 9;
+  --z-index-99: 99;
+  --z-index-999: 999;
+  --z-index-9999: 9999;
+  --z-index-99999: 99999;
+  --z-index-999999: 999999;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  body {
+    @apply relative font-normal font-outfit z-1 bg-gray-50;
+  }
+}
+
+@utility menu-item {
+  @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
+}
+
+@utility menu-item-active {
+  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+}
+
+@utility menu-item-icon-active {
+  @apply text-brand-500 dark:text-brand-400;
+}
+
+@utility menu-item-icon-size {
+  & svg {
+    @apply !size-6;
+  }
+}
+
+@utility menu-item-icon-inactive {
+  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+}
+
+@utility menu-dropdown-item {
+  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-theme-sm font-medium;
+}
+
+@utility menu-dropdown-item-active {
+  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+}
+
+@utility menu-dropdown-item-inactive {
+  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+}
+
+@utility menu-item-text {
+  @apply whitespace-nowrap;
+}
+
+/* ── Badge utilities ── */
+@utility badge {
+  @apply inline-flex rounded-full px-2 py-0.5 text-xs font-medium;
+}
+
+@utility badge-brand {
+  @apply bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400;
+}
+
+@utility badge-success {
+  @apply bg-success-50 text-success-600 dark:bg-success-500/10 dark:text-success-400;
+}
+
+@utility badge-warning {
+  @apply bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400;
+}
+
+@utility badge-error {
+  @apply bg-error-50 text-error-600 dark:bg-error-500/10 dark:text-error-400;
+}
+
+@utility badge-gray {
+  @apply bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400;
+}
+
+/* ── Tab button utilities ── */
+@utility tab-active {
+  @apply rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white;
+}
+
+@utility tab-inactive {
+  @apply rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800;
+}
+
+/* ── Attendance status-button utilities ── */
+@utility status-btn {
+  @apply rounded-lg border-2 px-2.5 py-1 text-xs font-semibold;
+}
+
+@utility status-btn-success {
+  @apply border-success-500 bg-success-50 text-success-700 dark:border-success-400 dark:bg-success-500/10 dark:text-success-400;
+}
+
+@utility status-btn-error {
+  @apply border-error-500 bg-error-50 text-error-700 dark:border-error-400 dark:bg-error-500/10 dark:text-error-400;
+}
+
+@utility status-btn-warning {
+  @apply border-warning-500 bg-warning-50 text-warning-700 dark:border-warning-400 dark:bg-warning-500/10 dark:text-warning-400;
+}
+
+@utility status-btn-gray {
+  @apply border-gray-500 bg-gray-100 text-gray-700 dark:border-gray-400 dark:bg-gray-800 dark:text-gray-400;
+}
+
+@utility status-btn-inactive {
+  @apply border-transparent bg-gray-100 text-gray-500 opacity-50 hover:opacity-75 dark:bg-gray-800 dark:text-gray-400;
+}
+
+/* ── Rating button utilities ── */
+@utility rating-btn {
+  @apply flex h-9 w-9 items-center justify-center rounded-lg border-2 text-sm font-bold;
+}
+
+@utility rating-btn-active {
+  @apply border-brand-500 bg-brand-500 text-white;
+}
+
+@utility rating-btn-inactive {
+  @apply border-gray-200 text-gray-700 dark:border-gray-700 dark:text-gray-300;
+}
+
+/* ── Card variant utilities ── */
+@utility card-base {
+  @apply rounded-2xl border p-5;
+}
+
+@utility card-default {
+  @apply border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03];
+}
+
+@utility card-error {
+  @apply border-error-200 bg-error-50 dark:border-error-700 dark:bg-error-500/10;
+}
+
+@utility card-warning {
+  @apply border-warning-200 bg-warning-50 dark:border-warning-700 dark:bg-warning-500/10;
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    @apply size-1.5;
+  }
+  &::-webkit-scrollbar-track {
+    @apply rounded-full;
+  }
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+  }
+}
+
+@layer utilities {
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="time"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+}
+
+.tableCheckbox:checked ~ span span {
+  @apply opacity-100;
+}
+.tableCheckbox:checked ~ span {
+  @apply border-brand-500 bg-brand-500;
+}

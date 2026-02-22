@@ -39,43 +39,47 @@ const COUNTRY_CODES: CountryCode[] = [
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="page-header">
-      <h1>Schools (Tenants)</h1>
-      <button class="btn-primary" (click)="toggleForm()">{{ showForm ? 'Cancel' : '+ Add School' }}</button>
+    <!-- Page Header -->
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-lg font-semibold text-gray-800 dark:text-white/90">Schools (Tenants)</h1>
+      <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600" (click)="toggleForm()">{{ showForm ? 'Cancel' : '+ Add School' }}</button>
     </div>
 
-    <div class="alert alert-danger" *ngIf="errorMessage">
-      <span class="alert-icon">⚠</span>
-      <span class="alert-text">{{ errorMessage }}</span>
-      <button class="alert-close" (click)="errorMessage = ''">✕</button>
+    <!-- Error Alert -->
+    <div class="mb-4 flex items-center gap-3 rounded-lg border border-error-200 bg-error-50 p-3 text-sm text-error-700 dark:border-error-800 dark:bg-error-500/10 dark:text-error-400" *ngIf="errorMessage">
+      <span class="flex-shrink-0 text-lg">⚠</span>
+      <span class="flex-1">{{ errorMessage }}</span>
+      <button class="cursor-pointer border-none bg-transparent text-inherit opacity-70 hover:opacity-100" (click)="errorMessage = ''">✕</button>
     </div>
 
-    <div class="alert alert-success" *ngIf="successMessage">
-      <span class="alert-icon">✓</span>
-      <span class="alert-text">{{ successMessage }}</span>
-      <button class="alert-close" (click)="successMessage = ''">✕</button>
+    <!-- Success Alert -->
+    <div class="mb-4 flex items-center gap-3 rounded-lg border border-success-200 bg-success-50 p-3 text-sm text-success-700 dark:border-success-800 dark:bg-success-500/10 dark:text-success-400" *ngIf="successMessage">
+      <span class="flex-shrink-0 text-lg">✓</span>
+      <span class="flex-1">{{ successMessage }}</span>
+      <button class="cursor-pointer border-none bg-transparent text-inherit opacity-70 hover:opacity-100" (click)="successMessage = ''">✕</button>
     </div>
 
-    <div class="card form-card" *ngIf="showForm">
-      <h3>Onboard New School</h3>
+    <!-- Create Form Card -->
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/[0.03]" *ngIf="showForm">
+      <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Onboard New School</h3>
       <form [formGroup]="schoolForm" (ngSubmit)="create()">
         <!-- School Info -->
-        <div class="form-section-title">School Information</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>School Name <span class="required">*</span></label>
-            <input formControlName="name" placeholder="e.g. Al Abtal Academy" />
-            <div class="field-error" *ngIf="showError('name')">
+        <div class="mb-3 mt-2 border-b border-gray-100 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:text-gray-400">School Information</div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">School Name <span class="text-error-500">*</span></label>
+            <input formControlName="name" placeholder="e.g. Al Abtal Academy" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('name')">
               <span *ngIf="schoolForm.get('name')?.errors?.['required']">School name is required.</span>
               <span *ngIf="schoolForm.get('name')?.errors?.['minlength']">Must be at least 2 characters.</span>
               <span *ngIf="schoolForm.get('name')?.errors?.['maxlength']">Must be under 100 characters.</span>
             </div>
           </div>
-          <div class="form-group">
-            <label>Subdomain / Code <span class="required">*</span></label>
-            <input formControlName="code" placeholder="e.g. al-abtal" />
-            <div class="field-hint" *ngIf="!showError('code')">Lowercase letters, numbers, and hyphens only.</div>
-            <div class="field-error" *ngIf="showError('code')">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Subdomain / Code <span class="text-error-500">*</span></label>
+            <input formControlName="code" placeholder="e.g. al-abtal" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-gray-400" *ngIf="!showError('code')">Lowercase letters, numbers, and hyphens only.</div>
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('code')">
               <span *ngIf="schoolForm.get('code')?.errors?.['required']">Subdomain code is required.</span>
               <span *ngIf="schoolForm.get('code')?.errors?.['minlength']">Must be at least 3 characters.</span>
               <span *ngIf="schoolForm.get('code')?.errors?.['maxlength']">Must be under 50 characters.</span>
@@ -83,61 +87,73 @@ const COUNTRY_CODES: CountryCode[] = [
             </div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Contact Email</label>
-            <input formControlName="email" type="email" placeholder="e.g. info&#64;school.com" />
-            <div class="field-error" *ngIf="showError('email')">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contact Email</label>
+            <input formControlName="email" type="email" placeholder="e.g. info&#64;school.com" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('email')">
               <span *ngIf="schoolForm.get('email')?.errors?.['email']">Enter a valid email address.</span>
             </div>
           </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <div class="phone-input-group">
-              <select formControlName="countryCode" class="country-select">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Phone</label>
+            <div class="flex gap-2">
+              <select formControlName="countryCode" class="h-11 w-[45%] flex-shrink-0 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
                 <option value="">Country</option>
                 <option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.dial }})</option>
               </select>
-              <input formControlName="phoneNumber" class="phone-number-input"
+              <input formControlName="phoneNumber" class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                      [placeholder]="selectedCountry?.phonePlaceholder || 'Phone number'" />
             </div>
-            <div class="field-error" *ngIf="showError('phoneNumber')">
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('phoneNumber')">
               <span *ngIf="schoolForm.get('phoneNumber')?.errors?.['invalidPhone']">
                 Invalid phone number for {{ selectedCountry?.name || 'selected country' }}.
               </span>
             </div>
-            <div class="field-error" *ngIf="schoolForm.get('phoneNumber')?.value && !schoolForm.get('countryCode')?.value">
+            <div class="mt-1 text-xs text-error-500" *ngIf="schoolForm.get('phoneNumber')?.value && !schoolForm.get('countryCode')?.value">
               <span>Please select a country first.</span>
             </div>
           </div>
         </div>
 
         <!-- Admin Account -->
-        <div class="form-section-title">Admin Account</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Admin Email <span class="required">*</span></label>
-            <input formControlName="adminEmail" type="email" placeholder="e.g. admin&#64;school.com" />
-            <div class="field-error" *ngIf="showError('adminEmail')">
+        <div class="mb-3 mt-2 border-b border-gray-100 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:text-gray-400">Admin Account</div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Admin Email <span class="text-error-500">*</span></label>
+            <input formControlName="adminEmail" type="email" placeholder="e.g. admin&#64;school.com" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('adminEmail')">
               <span *ngIf="schoolForm.get('adminEmail')?.errors?.['required']">Admin email is required.</span>
               <span *ngIf="schoolForm.get('adminEmail')?.errors?.['email']">Enter a valid email address.</span>
             </div>
           </div>
-          <div class="form-group">
-            <label>Admin Password <span class="required">*</span></label>
-            <div class="password-wrapper">
-              <input formControlName="adminPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Min 8 chars, uppercase, number, symbol" />
-              <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Admin Password <span class="text-error-500">*</span></label>
+            <div class="relative">
+              <input formControlName="adminPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Min 8 chars, uppercase, number, symbol" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-10 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-base" (click)="showPassword = !showPassword">
                 {{ showPassword ? '🙈' : '👁' }}
               </button>
             </div>
-            <div class="password-strength" *ngIf="schoolForm.get('adminPassword')?.value">
-              <div class="strength-bar">
-                <div class="strength-fill" [style.width.%]="passwordStrength" [class]="passwordStrengthClass"></div>
+            <div class="mt-1.5 flex items-center gap-2" *ngIf="schoolForm.get('adminPassword')?.value">
+              <div class="h-1 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                <div class="h-full rounded-full transition-all duration-300" [style.width.%]="passwordStrength"
+                     [ngClass]="{
+                       'bg-error-500': passwordStrengthClass === 'weak',
+                       'bg-warning-500': passwordStrengthClass === 'fair',
+                       'bg-brand-500': passwordStrengthClass === 'good',
+                       'bg-success-500': passwordStrengthClass === 'strong'
+                     }"></div>
               </div>
-              <span class="strength-label" [class]="passwordStrengthClass">{{ passwordStrengthLabel }}</span>
+              <span class="text-xs font-semibold uppercase"
+                    [ngClass]="{
+                      'text-error-500': passwordStrengthClass === 'weak',
+                      'text-warning-500': passwordStrengthClass === 'fair',
+                      'text-brand-500': passwordStrengthClass === 'good',
+                      'text-success-500': passwordStrengthClass === 'strong'
+                    }">{{ passwordStrengthLabel }}</span>
             </div>
-            <div class="field-error" *ngIf="showError('adminPassword')">
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('adminPassword')">
               <span *ngIf="schoolForm.get('adminPassword')?.errors?.['required']">Password is required.</span>
               <span *ngIf="schoolForm.get('adminPassword')?.errors?.['minlength']">Must be at least 8 characters.</span>
               <span *ngIf="schoolForm.get('adminPassword')?.errors?.['passwordStrength']">
@@ -146,20 +162,20 @@ const COUNTRY_CODES: CountryCode[] = [
             </div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Admin First Name <span class="required">*</span></label>
-            <input formControlName="adminFirstName" placeholder="e.g. Ahmed" />
-            <div class="field-error" *ngIf="showError('adminFirstName')">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Admin First Name <span class="text-error-500">*</span></label>
+            <input formControlName="adminFirstName" placeholder="e.g. Ahmed" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('adminFirstName')">
               <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['required']">First name is required.</span>
               <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['minlength']">Must be at least 2 characters.</span>
               <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['maxlength']">Must be under 50 characters.</span>
             </div>
           </div>
-          <div class="form-group">
-            <label>Admin Last Name <span class="required">*</span></label>
-            <input formControlName="adminLastName" placeholder="e.g. Fahmy" />
-            <div class="field-error" *ngIf="showError('adminLastName')">
+          <div class="mb-4">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Admin Last Name <span class="text-error-500">*</span></label>
+            <input formControlName="adminLastName" placeholder="e.g. Fahmy" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+            <div class="mt-1 text-xs text-error-500" *ngIf="showError('adminLastName')">
               <span *ngIf="schoolForm.get('adminLastName')?.errors?.['required']">Last name is required.</span>
               <span *ngIf="schoolForm.get('adminLastName')?.errors?.['minlength']">Must be at least 2 characters.</span>
               <span *ngIf="schoolForm.get('adminLastName')?.errors?.['maxlength']">Must be under 50 characters.</span>
@@ -167,99 +183,48 @@ const COUNTRY_CODES: CountryCode[] = [
           </div>
         </div>
 
-        <button type="submit" class="btn-primary btn-submit" [disabled]="creating || schoolForm.invalid">
+        <button type="submit" class="mt-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="creating || schoolForm.invalid">
           {{ creating ? 'Creating...' : 'Create School' }}
         </button>
       </form>
     </div>
 
-    <div class="card">
-      <table class="data-table">
-        <thead><tr><th>School Name</th><th>Subdomain</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let t of tenants">
-            <td>{{ t.name }}</td>
-            <td>{{ t.code }}</td>
-            <td>{{ t.email || '—' }}</td>
-            <td>{{ t.phone || '—' }}</td>
-            <td><span [class]="t.isActive ? 'badge-active' : 'badge-inactive'">{{ t.isActive ? 'Active' : 'Inactive' }}</span></td>
-            <td>
-              <button class="btn-sm btn-danger" (click)="deactivate(t.id)" *ngIf="t.isActive">Deactivate</button>
-              <button class="btn-sm btn-success" (click)="reactivate(t.id)" *ngIf="!t.isActive">Reactivate</button>
+    <!-- Table Card -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <table class="w-full table-auto">
+        <thead>
+          <tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">School Name</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Subdomain</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Email</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Phone</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr *ngFor="let t of tenants" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ t.name }}</td>
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ t.code }}</td>
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ t.email || '—' }}</td>
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ t.phone || '—' }}</td>
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+              <span *ngIf="t.isActive" class="inline-flex rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/10 dark:text-success-400">Active</span>
+              <span *ngIf="!t.isActive" class="inline-flex rounded-full bg-error-50 px-2 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/10 dark:text-error-400">Inactive</span>
+            </td>
+            <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+              <button class="rounded-lg bg-error-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-error-600" (click)="deactivate(t.id)" *ngIf="t.isActive">Deactivate</button>
+              <button class="rounded-lg bg-success-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-success-600" (click)="reactivate(t.id)" *ngIf="!t.isActive">Reactivate</button>
             </td>
           </tr>
           <tr *ngIf="tenants.length === 0">
-            <td colspan="6" class="empty-row">No schools found. Click "+ Add School" to create one.</td>
+            <td colspan="6" class="py-8 text-center text-sm text-gray-400">No schools found. Click "+ Add School" to create one.</td>
           </tr>
         </tbody>
       </table>
     </div>
   `,
-  styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .btn-primary { padding: 0.5rem 1rem; background: #0f172a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; }
-    .btn-primary:hover:not(:disabled) { background: #1e293b; }
-    .btn-submit { margin-top: 0.5rem; padding: 0.625rem 1.5rem; }
-    .btn-sm { padding: 0.25rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #22c55e; color: white; }
-    .btn-success:hover { background: #16a34a; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .form-card { margin-bottom: 1.5rem; }
-    .form-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 0.75rem; margin-top: 0.5rem; padding-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.875rem; color: #334155; }
-    .required { color: #ef4444; }
-    .form-group input, .form-group select { width: 100%; padding: 0.5rem 0.625rem; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 0.875rem; transition: border-color 0.15s, box-shadow 0.15s; background: white; }
-    .form-group input:focus, .form-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .form-group input.ng-invalid.ng-touched, .form-group select.ng-invalid.ng-touched { border-color: #ef4444; }
-    .form-group input.ng-valid.ng-touched { border-color: #22c55e; }
-    .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem; }
-    .field-hint { color: #94a3b8; font-size: 0.75rem; margin-top: 0.25rem; }
-
-    /* Phone input */
-    .phone-input-group { display: flex; gap: 0.5rem; }
-    .country-select { flex: 0 0 45%; min-width: 0; padding: 0.5rem 0.375rem; font-size: 0.8rem; }
-    .phone-number-input { flex: 1; min-width: 0; }
-
-    /* Password */
-    .password-wrapper { position: relative; display: flex; align-items: center; }
-    .password-wrapper input { padding-right: 2.5rem; }
-    .toggle-password { position: absolute; right: 0.5rem; background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.25rem; line-height: 1; }
-    .password-strength { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem; }
-    .strength-bar { flex: 1; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
-    .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
-    .strength-fill.weak { background: #ef4444; }
-    .strength-fill.fair { background: #f59e0b; }
-    .strength-fill.good { background: #3b82f6; }
-    .strength-fill.strong { background: #22c55e; }
-    .strength-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-    .strength-label.weak { color: #ef4444; }
-    .strength-label.fair { color: #f59e0b; }
-    .strength-label.good { color: #3b82f6; }
-    .strength-label.strong { color: #22c55e; }
-
-    /* Table */
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-    .empty-row { text-align: center; color: #94a3b8; padding: 2rem !important; }
-    .badge-active { background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-    .badge-inactive { background: #fef2f2; color: #991b1b; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-
-    /* Alerts */
-    .alert { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
-    .alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .alert-icon { font-size: 1.1rem; flex-shrink: 0; }
-    .alert-text { flex: 1; }
-    .alert-close { background: none; border: none; cursor: pointer; font-size: 1rem; color: inherit; padding: 0 0.25rem; opacity: 0.7; }
-    .alert-close:hover { opacity: 1; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  `]
+  styles: []
 })
 export class TenantListComponent implements OnInit {
   tenants: TenantDto[] = [];

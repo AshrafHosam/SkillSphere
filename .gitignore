@@ -25,3 +25,6 @@ Thumbs.db
 
 # Environment
 *.env
+
+# Template source (not needed in repo)
+template/

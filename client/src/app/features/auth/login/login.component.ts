@@ -9,41 +9,40 @@ import { AuthService } from '@core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="login-container">
-      <div class="login-card">
-        <h1>SkillSphere</h1>
-        <p>School Management Platform</p>
+    <div class="flex min-h-screen items-center justify-center bg-gray-900 p-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl dark:bg-gray-800">
+        <div class="mb-8 text-center">
+          <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-500">
+            <span class="text-2xl font-bold text-white">SS</span>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">SkillSphere</h1>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">School Management Platform</p>
+        </div>
         <form (ngSubmit)="onLogin()">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="email" name="email" required placeholder="admin@school.com" />
+          <div class="mb-5">
+            <label class="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">Email</label>
+            <input type="email" [(ngModel)]="email" name="email" required
+              placeholder="admin&#64;school.com"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
           </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" [(ngModel)]="password" name="password" required placeholder="••••••••" />
+          <div class="mb-5">
+            <label class="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">Password</label>
+            <input type="password" [(ngModel)]="password" name="password" required
+              placeholder="••••••••"
+              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
           </div>
-          <div class="error" *ngIf="error">{{ error }}</div>
-          <button type="submit" [disabled]="loading">
+          <div *ngIf="error" class="mb-4 rounded-lg bg-error-50 p-3 text-sm font-medium text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            {{ error }}
+          </div>
+          <button type="submit" [disabled]="loading"
+            class="flex h-11 w-full items-center justify-center rounded-lg bg-brand-500 text-sm font-semibold text-white shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60">
             {{ loading ? 'Signing in...' : 'Sign In' }}
           </button>
         </form>
       </div>
     </div>
   `,
-  styles: [`
-    .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #0f172a; }
-    .login-card { background: white; padding: 2.5rem; border-radius: 12px; width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); }
-    h1 { margin: 0; color: #0f172a; font-size: 1.75rem; }
-    p { color: #64748b; margin-bottom: 2rem; }
-    .form-group { margin-bottom: 1.25rem; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155; font-size: 0.875rem; }
-    input { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
-    input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.1); }
-    button { width: 100%; padding: 0.75rem; background: #0f172a; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: 600; }
-    button:hover { background: #1e293b; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .error { color: #ef4444; margin-bottom: 1rem; font-size: 0.875rem; }
-  `]
+  styles: []
 })
 export class LoginComponent {
   email = '';

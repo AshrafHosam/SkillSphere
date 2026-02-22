@@ -9,171 +9,179 @@ import { AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, Supervisor
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <p>Welcome back, {{ auth.fullName }}</p>
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90">Dashboard</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Welcome back, {{ auth.fullName }}</p>
     </div>
 
     <!-- Admin / SuperAdmin Dashboard -->
-    <div *ngIf="auth.userRole === 'SchoolAdmin' || auth.userRole === 'PlatformSuperAdmin'" class="dashboard-grid">
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalTeachers || 0 }}</h3>
-        <p>Teachers</p>
+    <div *ngIf="auth.userRole === 'SchoolAdmin' || auth.userRole === 'PlatformSuperAdmin'" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Teachers</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ adminData?.totalTeachers || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalStudents || 0 }}</h3>
-        <p>Students</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Students</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ adminData?.totalStudents || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalParents || 0 }}</h3>
-        <p>Parents</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Parents</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ adminData?.totalParents || 0 }}</h3>
       </div>
-      <div class="card stat-card alert" *ngIf="(adminData?.openEscalations || 0) > 0">
-        <h3>{{ adminData?.openEscalations }}</h3>
-        <p>Open Escalations</p>
+      <div *ngIf="(adminData?.openEscalations || 0) > 0" class="rounded-2xl border border-error-200 bg-error-50 p-5 dark:border-error-800 dark:bg-error-500/10">
+        <p class="mb-1 text-sm text-error-600 dark:text-error-400">Open Escalations</p>
+        <h3 class="text-2xl font-bold text-error-600 dark:text-error-400">{{ adminData?.openEscalations }}</h3>
       </div>
-      <div class="card stat-card" *ngIf="adminData?.unresolvedInternalReports">
-        <h3>{{ adminData?.unresolvedInternalReports }}</h3>
-        <p>Unresolved Reports</p>
+      <div *ngIf="adminData?.unresolvedInternalReports" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Unresolved Reports</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ adminData?.unresolvedInternalReports }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.notificationStatus?.delivered || 0 }}</h3>
-        <p>Notifications Delivered</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Notifications Delivered</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ adminData?.notificationStatus?.delivered || 0 }}</h3>
       </div>
     </div>
 
     <!-- Manager Dashboard -->
-    <div *ngIf="auth.userRole === 'SchoolManager'" class="dashboard-grid">
-      <div class="card stat-card" [class.alert]="(managerData?.missingAttendance || 0) > 0">
-        <h3>{{ managerData?.missingAttendance || 0 }}</h3>
-        <p>Missing Attendance</p>
+    <div *ngIf="auth.userRole === 'SchoolManager'" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="card-base" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'card-error' : 'card-default'">
+        <p class="mb-1 text-sm" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-500 dark:text-gray-400'">Missing Attendance</p>
+        <h3 class="text-2xl font-bold" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-800 dark:text-white/90'">{{ managerData?.missingAttendance || 0 }}</h3>
       </div>
-      <div class="card stat-card" [class.alert]="(managerData?.missingWeeklyReports || 0) > 0">
-        <h3>{{ managerData?.missingWeeklyReports || 0 }}</h3>
-        <p>Missing Weekly Reports</p>
+      <div class="card-base" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'card-error' : 'card-default'">
+        <p class="mb-1 text-sm" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-500 dark:text-gray-400'">Missing Weekly Reports</p>
+        <h3 class="text-2xl font-bold" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-800 dark:text-white/90'">{{ managerData?.missingWeeklyReports || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ managerData?.timetableConflicts || 0 }}</h3>
-        <p>Timetable Conflicts</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Timetable Conflicts</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ managerData?.timetableConflicts || 0 }}</h3>
       </div>
-      <div class="card stat-card" [class.alert]="(managerData?.studentRiskQueue || 0) > 0">
-        <h3>{{ managerData?.studentRiskQueue || 0 }}</h3>
-        <p>Students at Risk</p>
+      <div class="card-base" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'card-warning' : 'card-default'">
+        <p class="mb-1 text-sm" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-500 dark:text-gray-400'">Students at Risk</p>
+        <h3 class="text-2xl font-bold" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-800 dark:text-white/90'">{{ managerData?.studentRiskQueue || 0 }}</h3>
       </div>
     </div>
 
     <!-- Teacher Dashboard -->
-    <div *ngIf="auth.userRole === 'Teacher'" class="dashboard-grid">
-      <div class="card stat-card">
-        <h3>{{ teacherData?.todaySessions?.length || 0 }}</h3>
-        <p>Today's Sessions</p>
+    <div *ngIf="auth.userRole === 'Teacher'" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Today's Sessions</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ teacherData?.todaySessions?.length || 0 }}</h3>
       </div>
-      <div class="card stat-card" [class.alert]="(teacherData?.attendanceTasksDue || 0) > 0">
-        <h3>{{ teacherData?.attendanceTasksDue || 0 }}</h3>
-        <p>Attendance Due</p>
+      <div class="card-base" [ngClass]="(teacherData?.attendanceTasksDue || 0) > 0 ? 'card-warning' : 'card-default'">
+        <p class="mb-1 text-sm" [ngClass]="(teacherData?.attendanceTasksDue || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-500 dark:text-gray-400'">Attendance Due</p>
+        <h3 class="text-2xl font-bold" [ngClass]="(teacherData?.attendanceTasksDue || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-800 dark:text-white/90'">{{ teacherData?.attendanceTasksDue || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ teacherData?.weeklyReportTasksDue || 0 }}</h3>
-        <p>Reports Due</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Reports Due</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ teacherData?.weeklyReportTasksDue || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ teacherData?.totalAssignedStudents || 0 }}</h3>
-        <p>My Students</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">My Students</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ teacherData?.totalAssignedStudents || 0 }}</h3>
       </div>
     </div>
 
     <!-- Today's Schedule (Teacher) -->
-    <div *ngIf="auth.userRole === 'Teacher' && teacherData?.todaySessions?.length" class="card" style="margin-top:1rem">
-      <h3>Today's Schedule</h3>
-      <table class="data-table">
-        <thead><tr><th>Time</th><th>Subject</th><th>Class</th><th>Room</th><th>Attendance</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let s of teacherData!.todaySessions">
-            <td>{{ s.startTime }} - {{ s.endTime }}</td>
-            <td>{{ s.subjectName }}</td>
-            <td>{{ s.gradeName }} {{ s.className }}</td>
-            <td>{{ s.room || '-' }}</td>
-            <td><span [class]="s.attendanceSubmitted ? 'badge-done' : 'badge-pending'">{{ s.attendanceSubmitted ? 'Done' : 'Pending' }}</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <div *ngIf="auth.userRole === 'Teacher' && teacherData?.todaySessions?.length" class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="px-5 py-4"><h3 class="text-base font-semibold text-gray-800 dark:text-white/90">Today's Schedule</h3></div>
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Time</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Subject</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Class</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Room</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Attendance</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let s of teacherData!.todaySessions" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="whitespace-nowrap px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ s.startTime }} - {{ s.endTime }}</td>
+              <td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white/90">{{ s.subjectName }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ s.gradeName }} {{ s.className }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ s.room || '-' }}</td>
+              <td class="px-5 py-3 text-sm">
+                <span class="badge" [ngClass]="s.attendanceSubmitted ? 'badge-success' : 'badge-warning'">
+                  {{ s.attendanceSubmitted ? 'Done' : 'Pending' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Supervisor Dashboard -->
-    <div *ngIf="auth.userRole === 'TeacherSupervisor'" class="dashboard-grid">
-      <div class="card stat-card" [class.alert]="(supervisorData?.internalReportsInbox || 0) > 0">
-        <h3>{{ supervisorData?.internalReportsInbox || 0 }}</h3>
-        <p>Reports Inbox</p>
+    <div *ngIf="auth.userRole === 'TeacherSupervisor'" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="card-base" [ngClass]="(supervisorData?.internalReportsInbox || 0) > 0 ? 'card-warning' : 'card-default'">
+        <p class="mb-1 text-sm" [ngClass]="(supervisorData?.internalReportsInbox || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-500 dark:text-gray-400'">Reports Inbox</p>
+        <h3 class="text-2xl font-bold" [ngClass]="(supervisorData?.internalReportsInbox || 0) > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-800 dark:text-white/90'">{{ supervisorData?.internalReportsInbox || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ supervisorData?.complianceAlerts || 0 }}</h3>
-        <p>Compliance Alerts</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Compliance Alerts</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ supervisorData?.complianceAlerts || 0 }}</h3>
       </div>
-      <div class="card stat-card">
-        <h3>{{ supervisorData?.trendingStudents?.length || 0 }}</h3>
-        <p>Trending Students</p>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">Trending Students</p>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ supervisorData?.trendingStudents?.length || 0 }}</h3>
       </div>
     </div>
 
     <!-- Trending Students list (Supervisor) -->
-    <div *ngIf="auth.userRole === 'TeacherSupervisor' && supervisorData?.trendingStudents?.length" class="card" style="margin-top:1rem">
-      <h3>Trending Students (Multiple Reports)</h3>
-      <table class="data-table">
-        <thead><tr><th>Student</th><th>Report Count</th><th>Latest Category</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let s of supervisorData!.trendingStudents">
-            <td>{{ s.studentName }}</td>
-            <td>{{ s.reportCount }}</td>
-            <td>{{ s.latestCategory }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div *ngIf="auth.userRole === 'TeacherSupervisor' && supervisorData?.trendingStudents?.length" class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="px-5 py-4"><h3 class="text-base font-semibold text-gray-800 dark:text-white/90">Trending Students (Multiple Reports)</h3></div>
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Student</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Report Count</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Latest Category</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let s of supervisorData!.trendingStudents" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white/90">{{ s.studentName }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ s.reportCount }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ s.latestCategory }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Parent Dashboard -->
-    <div *ngIf="auth.userRole === 'Parent'" class="dashboard-grid">
-      <div class="card" *ngFor="let child of parentData?.studentCards || []">
-        <h3>{{ child.studentName }}</h3>
-        <p class="meta">{{ child.gradeName }} - {{ child.className }}</p>
-        <div class="child-stats">
-          <div><strong>{{ child.totalWeeklyReports }}</strong><span>Reports</span></div>
-          <div><strong>{{ child.averageGrade ? (child.averageGrade | number:'1.0-1') : 'N/A' }}</strong><span>Avg Score</span></div>
+    <div *ngIf="auth.userRole === 'Parent'" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div *ngFor="let child of parentData?.studentCards || []" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">{{ child.studentName }}</h3>
+        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{{ child.gradeName }} - {{ child.className }}</p>
+        <div class="flex gap-6">
+          <div class="text-center">
+            <span class="block text-xl font-bold text-gray-800 dark:text-white/90">{{ child.totalWeeklyReports }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Reports</span>
+          </div>
+          <div class="text-center">
+            <span class="block text-xl font-bold text-gray-800 dark:text-white/90">{{ child.averageGrade ? (child.averageGrade | number:'1.0-1') : 'N/A' }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Avg Score</span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Student Dashboard -->
-    <div *ngIf="auth.userRole === 'Student'" class="card">
-      <h3>Student Portal</h3>
-      <p>Welcome to your student dashboard. Check your weekly reports and attendance from the navigation menu.</p>
+    <div *ngIf="auth.userRole === 'Student'" class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">Student Portal</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Welcome to your student dashboard. Check your weekly reports and attendance from the navigation menu.</p>
     </div>
 
     <!-- Loading state -->
-    <div *ngIf="loading" class="card">
-      <p>Loading dashboard data...</p>
+    <div *ngIf="loading" class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+      <p class="text-sm text-gray-500 dark:text-gray-400">Loading dashboard data...</p>
     </div>
   `,
-  styles: [`
-    .page-header { margin-bottom: 2rem; }
-    .page-header h1 { margin: 0 0 0.25rem; color: #0f172a; }
-    .page-header p { color: #64748b; margin: 0; }
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stat-card h3 { font-size: 2rem; margin: 0 0 0.25rem; color: #0f172a; }
-    .stat-card p { margin: 0; color: #64748b; font-size: 0.875rem; }
-    .stat-card.alert { border-left: 4px solid #ef4444; }
-    .stat-card.alert h3 { color: #dc2626; }
-    .meta { color: #64748b; font-size: 0.875rem; margin: 0.25rem 0 1rem; }
-    .child-stats { display: flex; gap: 2rem; margin-top: 1rem; }
-    .child-stats div { text-align: center; }
-    .child-stats strong { display: block; font-size: 1.5rem; color: #0f172a; }
-    .child-stats span { font-size: 0.75rem; color: #64748b; }
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-    .data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-    .badge-done { background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-    .badge-pending { background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-  `]
+  styles: []
 })
 export class DashboardComponent implements OnInit {
   adminData: AdminDashboardDto | null = null;

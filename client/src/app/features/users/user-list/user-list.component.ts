@@ -9,25 +9,52 @@ import { UserDto } from '@core/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-header">
-      <h1>Users</h1>
-      <button class="btn-primary" (click)="showForm = !showForm">{{ showForm ? 'Cancel' : '+ Add User' }}</button>
+    <!-- Page Header -->
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-lg font-semibold text-gray-800 dark:text-white/90">Users</h1>
+      <button
+        class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
+        (click)="showForm = !showForm">
+        {{ showForm ? 'Cancel' : '+ Add User' }}
+      </button>
     </div>
 
-    <div class="card form-card" *ngIf="showForm">
-      <h3>Create User</h3>
-      <div class="form-row">
-        <div class="form-group"><label>Email</label><input [(ngModel)]="form.email" /></div>
-        <div class="form-group"><label>Password</label><input type="password" [(ngModel)]="form.password" /></div>
+    <!-- Create User Form -->
+    <div *ngIf="showForm"
+      class="mb-4 rounded-2xl border border-gray-200 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Create User</h3>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Email</label>
+          <input [(ngModel)]="form.email"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Password</label>
+          <input type="password" [(ngModel)]="form.password"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+        </div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>First Name</label><input [(ngModel)]="form.firstName" /></div>
-        <div class="form-group"><label>Last Name</label><input [(ngModel)]="form.lastName" /></div>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">First Name</label>
+          <input [(ngModel)]="form.firstName"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Last Name</label>
+          <input [(ngModel)]="form.lastName"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" />
+        </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Role</label>
-          <select [(ngModel)]="form.role">
+
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Role</label>
+          <select [(ngModel)]="form.role"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
             <option value="">Select Role</option>
             <option value="SchoolAdmin">School Admin</option>
             <option value="SchoolManager">School Manager</option>
@@ -38,12 +65,22 @@ import { UserDto } from '@core/models';
           </select>
         </div>
       </div>
-      <button class="btn-primary" (click)="create()">Create</button>
+
+      <div class="mt-4">
+        <button
+          class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
+          (click)="create()">
+          Create
+        </button>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="filter-row">
-        <select [(ngModel)]="filter.role" (change)="load()">
+    <!-- Users Table Card -->
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <!-- Filter Row -->
+      <div class="mb-4 p-5 pb-0 lg:p-6 lg:pb-0">
+        <select [(ngModel)]="filter.role" (change)="load()"
+          class="h-11 w-48 rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800">
           <option value="">All Roles</option>
           <option value="SchoolAdmin">Admin</option>
           <option value="SchoolManager">Manager</option>
@@ -53,43 +90,51 @@ import { UserDto } from '@core/models';
           <option value="Student">Student</option>
         </select>
       </div>
-      <table class="data-table">
-        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let u of users">
-            <td>{{ u.fullName }}</td>
-            <td>{{ u.email }}</td>
-            <td>{{ u.role }}</td>
-            <td><span [class]="u.isActive ? 'badge-active' : 'badge-inactive'">{{ u.isActive ? 'Active' : 'Inactive' }}</span></td>
-            <td>
-              <button class="btn-sm" *ngIf="u.isActive" (click)="toggleActive(u, false)">Deactivate</button>
-              <button class="btn-sm btn-success" *ngIf="!u.isActive" (click)="toggleActive(u, true)">Activate</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Email</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Role</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+              <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let u of users" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ u.fullName }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ u.email }}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{ u.role }}</td>
+              <td class="px-5 py-3 text-sm">
+                <span *ngIf="u.isActive"
+                  class="inline-flex rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-600 dark:bg-success-500/10 dark:text-success-400">
+                  Active
+                </span>
+                <span *ngIf="!u.isActive"
+                  class="inline-flex rounded-full bg-error-50 px-2 py-0.5 text-xs font-medium text-error-600 dark:bg-error-500/10 dark:text-error-400">
+                  Inactive
+                </span>
+              </td>
+              <td class="px-5 py-3 text-sm">
+                <button *ngIf="u.isActive" (click)="toggleActive(u, false)"
+                  class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+                  Deactivate
+                </button>
+                <button *ngIf="!u.isActive" (click)="toggleActive(u, true)"
+                  class="rounded-lg bg-success-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-success-600">
+                  Activate
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   `,
-  styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .btn-primary { padding: 0.5rem 1rem; background: #0f172a; color: white; border: none; border-radius: 6px; cursor: pointer; }
-    .btn-sm { padding: 0.25rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 4px; cursor: pointer; font-size: 0.8rem; background: white; }
-    .btn-success { background: #22c55e; color: white; border: none; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .form-card { margin-bottom: 1.5rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.875rem; color: #334155; }
-    .form-group input, .form-group select { width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; box-sizing: border-box; }
-    .filter-row { margin-bottom: 1rem; }
-    .filter-row select { padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 4px; }
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-    .badge-active { background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-    .badge-inactive { background: #fef2f2; color: #991b1b; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-  `]
+  styles: []
 })
 export class UserListComponent implements OnInit {
   users: UserDto[] = [];

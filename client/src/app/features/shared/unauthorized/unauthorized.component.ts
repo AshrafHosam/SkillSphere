@@ -6,19 +6,16 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="unauthorized">
-      <h1>403</h1>
-      <h2>Access Denied</h2>
-      <p>You don't have permission to access this page.</p>
-      <a routerLink="/dashboard" class="btn-primary">Go to Dashboard</a>
+    <div class="flex min-h-screen flex-col items-center justify-center bg-white p-6 text-center dark:bg-gray-900">
+      <h1 class="mb-2 text-8xl font-bold text-error-500">403</h1>
+      <h2 class="mb-2 text-2xl font-bold text-gray-800 dark:text-white">Access Denied</h2>
+      <p class="mb-8 text-gray-500 dark:text-gray-400">You don't have permission to access this page.</p>
+      <a routerLink="/dashboard"
+        class="inline-flex items-center rounded-lg bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-theme-xs hover:bg-brand-600">
+        Go to Dashboard
+      </a>
     </div>
   `,
-  styles: [`
-    .unauthorized { text-align: center; padding: 4rem 2rem; }
-    h1 { font-size: 6rem; margin: 0; color: #ef4444; }
-    h2 { margin: 0 0 1rem; color: #0f172a; }
-    p { color: #64748b; margin-bottom: 2rem; }
-    .btn-primary { padding: .75rem 1.5rem; background: #0f172a; color: white; border-radius: 6px; text-decoration: none; }
-  `]
+  styles: []
 })
 export class UnauthorizedComponent {}

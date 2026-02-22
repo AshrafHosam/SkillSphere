@@ -1,0 +1,249 @@
+<aside
+  class="sidebar fixed left-0 top-0 z-9999 flex h-screen flex-col overflow-y-hidden bg-gray-900 duration-300 ease-linear dark:bg-[#1a1c23] xl:translate-x-0"
+  [ngClass]="{
+    'w-[290px]': (isExpanded$ | async) || (isHovered$ | async),
+    'w-[90px]': !(isExpanded$ | async) && !(isHovered$ | async),
+    'translate-x-0': (isMobileOpen$ | async),
+    '-translate-x-full': !(isMobileOpen$ | async)
+  }"
+  (mouseenter)="onSidebarMouseEnter()"
+  (mouseleave)="sidebarService.setHovered(false)"
+>
+  <!-- Branding -->
+  <div class="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-7">
+    <a routerLink="/dashboard" class="flex items-center gap-2">
+      <span
+        class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500 text-lg font-bold text-white"
+      >
+        SS
+      </span>
+      <span
+        class="text-xl font-bold text-white"
+        [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+      >
+        SkillSphere
+      </span>
+    </a>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+    <nav class="mt-2 px-4 pb-4">
+      <!-- Main Menu -->
+      <div>
+        <h3
+          class="mb-4 ml-4 text-xs uppercase tracking-wider text-gray-400"
+          [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+        >
+          Menu
+        </h3>
+        <ul class="mb-6 flex flex-col gap-1.5">
+          <li *ngFor="let nav of filteredNavItems; let i = index">
+            <!-- Simple link (no sub items) -->
+            <a
+              *ngIf="!nav.subItems"
+              [routerLink]="nav.path"
+              (click)="onSubmenuClick()"
+              class="menu-item group"
+              [ngClass]="{
+                'menu-item-active': isActive(nav.path!),
+                'menu-item-inactive': !isActive(nav.path!)
+              }"
+            >
+              <span
+                class="menu-item-icon-size"
+                [ngClass]="{
+                  'menu-item-icon-active': isActive(nav.path!),
+                  'menu-item-icon-inactive': !isActive(nav.path!)
+                }"
+                [innerHTML]="nav.icon | safeHtml"
+              ></span>
+              <span
+                class="menu-item-text"
+                [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+              >
+                {{ nav.name }}
+              </span>
+            </a>
+
+            <!-- Dropdown (with sub items) -->
+            <ng-container *ngIf="nav.subItems">
+              <button
+                (click)="toggleSubmenu('main', i)"
+                class="menu-item group w-full"
+                [ngClass]="{
+                  'menu-item-active': openSubmenu === 'main-' + i,
+                  'menu-item-inactive': openSubmenu !== 'main-' + i
+                }"
+              >
+                <span
+                  class="menu-item-icon-size"
+                  [ngClass]="{
+                    'menu-item-icon-active': openSubmenu === 'main-' + i,
+                    'menu-item-icon-inactive': openSubmenu !== 'main-' + i
+                  }"
+                  [innerHTML]="nav.icon | safeHtml"
+                ></span>
+                <span
+                  class="menu-item-text"
+                  [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+                >
+                  {{ nav.name }}
+                </span>
+                <svg
+                  class="ml-auto h-5 w-5 transition-transform duration-200"
+                  [ngClass]="{
+                    'rotate-180': openSubmenu === 'main-' + i,
+                    hidden: !(isExpanded$ | async) && !(isHovered$ | async)
+                  }"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div
+                [id]="'main-' + i"
+                class="overflow-hidden transition-all duration-300"
+                [style.maxHeight.px]="openSubmenu === 'main-' + i ? (subMenuHeights['main-' + i] || 200) : 0"
+                [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+              >
+                <ul class="mt-1.5 flex flex-col gap-1 pl-7">
+                  <li *ngFor="let sub of getFilteredSubItems(nav.subItems)">
+                    <a
+                      [routerLink]="sub.path"
+                      (click)="onSubmenuClick()"
+                      class="menu-dropdown-item"
+                      [ngClass]="{
+                        'menu-dropdown-item-active': isActive(sub.path),
+                        'menu-dropdown-item-inactive': !isActive(sub.path)
+                      }"
+                    >
+                      {{ sub.name }}
+                      <span
+                        class="absolute left-0 top-1/2 -translate-y-1/2 rounded-full"
+                        [ngClass]="{
+                          'menu-dropdown-item-dot-active': isActive(sub.path),
+                          'menu-dropdown-item-dot-inactive': !isActive(sub.path)
+                        }"
+                      ></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </ng-container>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Others Section -->
+      <div *ngIf="filteredOthersItems.length > 0">
+        <h3
+          class="mb-4 ml-4 text-xs uppercase tracking-wider text-gray-400"
+          [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+        >
+          Others
+        </h3>
+        <ul class="mb-6 flex flex-col gap-1.5">
+          <li *ngFor="let nav of filteredOthersItems; let i = index">
+            <!-- Simple link -->
+            <a
+              *ngIf="!nav.subItems"
+              [routerLink]="nav.path"
+              (click)="onSubmenuClick()"
+              class="menu-item group"
+              [ngClass]="{
+                'menu-item-active': isActive(nav.path!),
+                'menu-item-inactive': !isActive(nav.path!)
+              }"
+            >
+              <span
+                class="menu-item-icon-size"
+                [ngClass]="{
+                  'menu-item-icon-active': isActive(nav.path!),
+                  'menu-item-icon-inactive': !isActive(nav.path!)
+                }"
+                [innerHTML]="nav.icon | safeHtml"
+              ></span>
+              <span
+                class="menu-item-text"
+                [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+              >
+                {{ nav.name }}
+              </span>
+            </a>
+
+            <!-- Dropdown -->
+            <ng-container *ngIf="nav.subItems">
+              <button
+                (click)="toggleSubmenu('others', i)"
+                class="menu-item group w-full"
+                [ngClass]="{
+                  'menu-item-active': openSubmenu === 'others-' + i,
+                  'menu-item-inactive': openSubmenu !== 'others-' + i
+                }"
+              >
+                <span
+                  class="menu-item-icon-size"
+                  [ngClass]="{
+                    'menu-item-icon-active': openSubmenu === 'others-' + i,
+                    'menu-item-icon-inactive': openSubmenu !== 'others-' + i
+                  }"
+                  [innerHTML]="nav.icon | safeHtml"
+                ></span>
+                <span
+                  class="menu-item-text"
+                  [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+                >
+                  {{ nav.name }}
+                </span>
+                <svg
+                  class="ml-auto h-5 w-5 transition-transform duration-200"
+                  [ngClass]="{
+                    'rotate-180': openSubmenu === 'others-' + i,
+                    hidden: !(isExpanded$ | async) && !(isHovered$ | async)
+                  }"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div
+                [id]="'others-' + i"
+                class="overflow-hidden transition-all duration-300"
+                [style.maxHeight.px]="openSubmenu === 'others-' + i ? (subMenuHeights['others-' + i] || 200) : 0"
+                [ngClass]="{ hidden: !(isExpanded$ | async) && !(isHovered$ | async) }"
+              >
+                <ul class="mt-1.5 flex flex-col gap-1 pl-7">
+                  <li *ngFor="let sub of getFilteredSubItems(nav.subItems)">
+                    <a
+                      [routerLink]="sub.path"
+                      (click)="onSubmenuClick()"
+                      class="menu-dropdown-item"
+                      [ngClass]="{
+                        'menu-dropdown-item-active': isActive(sub.path),
+                        'menu-dropdown-item-inactive': !isActive(sub.path)
+                      }"
+                    >
+                      {{ sub.name }}
+                      <span
+                        class="absolute left-0 top-1/2 -translate-y-1/2 rounded-full"
+                        [ngClass]="{
+                          'menu-dropdown-item-dot-active': isActive(sub.path),
+                          'menu-dropdown-item-dot-inactive': !isActive(sub.path)
+                        }"
+                      ></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </ng-container>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+</aside>

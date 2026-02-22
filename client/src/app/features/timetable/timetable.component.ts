@@ -8,53 +8,90 @@ import { TimetableService, AcademicService } from '@core/services/data.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-header"><h1>Timetable</h1>
-      <button class="btn-primary" (click)="showVersionForm=!showVersionForm">+ New Version</button>
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+      <h1 class="text-lg font-semibold text-gray-800 dark:text-white/90">Timetable</h1>
+      <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600" (click)="showVersionForm=!showVersionForm">+ New Version</button>
     </div>
 
-    <div class="card" *ngIf="showVersionForm">
-      <div class="form-row">
-        <div class="form-group"><label>Semester</label>
-          <select [(ngModel)]="versionForm.semesterId"><option *ngFor="let s of semesters" [value]="s.id">{{s.name}}</option></select>
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="showVersionForm">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-3">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Semester</label>
+          <select class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="versionForm.semesterId">
+            <option *ngFor="let s of semesters" [value]="s.id">{{s.name}}</option>
+          </select>
         </div>
-        <div class="form-group"><label>Name</label><input [(ngModel)]="versionForm.name" /></div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Name</label>
+          <input class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" [(ngModel)]="versionForm.name" />
+        </div>
       </div>
-      <button class="btn-primary" (click)="createVersion()">Create</button>
+      <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600" (click)="createVersion()">Create</button>
     </div>
 
-    <div class="card">
-      <h3>Versions</h3>
-      <table class="data-table"><thead><tr><th>Name</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody><tr *ngFor="let v of versions"><td>{{v.name}}</td><td>{{v.semesterName}}</td><td>
-          <span [class]="'badge-' + v.status.toLowerCase()">{{v.status}}</span></td>
-          <td>
-            <button class="btn-sm" (click)="loadEntries(v.id)">View</button>
-            <button class="btn-sm btn-success" *ngIf="v.status==='Draft'" (click)="publish(v.id)">Publish</button>
-          </td></tr></tbody></table>
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4">
+      <h3 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Versions</h3>
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="overflow-x-auto"><table class="w-full table-auto">
+          <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Name</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Semester</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let v of versions" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{v.name}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{v.semesterName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <span class="badge"
+                  [ngClass]="{
+                    'badge-warning': v.status === 'Draft',
+                    'badge-success': v.status === 'Published',
+                    'badge-gray': v.status === 'Archived'
+                  }">{{v.status}}</span>
+              </td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <div class="flex gap-2">
+                  <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" (click)="loadEntries(v.id)">View</button>
+                  <button class="rounded-lg bg-success-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-success-600" *ngIf="v.status==='Draft'" (click)="publish(v.id)">Publish</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
     </div>
 
-    <div class="card" *ngIf="selectedVersionId">
-      <h3>Entries</h3>
-      <table class="data-table"><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Teacher</th><th>Class</th><th>Grade</th><th>Room</th></tr></thead>
-        <tbody><tr *ngFor="let e of entries"><td>{{dayName(e.dayOfWeek)}}</td><td>{{e.startTime}}-{{e.endTime}}</td>
-          <td>{{e.subjectName}}</td><td>{{e.teacherName}}</td><td>{{e.classSectionName}}</td><td>{{e.gradeName}}</td><td>{{e.room}}</td></tr></tbody></table>
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] mb-4" *ngIf="selectedVersionId">
+      <h3 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Entries</h3>
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="overflow-x-auto"><table class="w-full table-auto">
+          <thead><tr class="border-b border-gray-100 dark:border-gray-800">
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Day</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Time</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Subject</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Teacher</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Class</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Grade</th>
+            <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Room</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr *ngFor="let e of entries" class="hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{dayName(e.dayOfWeek)}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.startTime}}-{{e.endTime}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.subjectName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.teacherName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.classSectionName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.gradeName}}</td>
+              <td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{{e.room}}</td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
     </div>
   `,
-  styles: [`
-    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}.page-header h1{margin:0}
-    .btn-primary{padding:.5rem 1rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer}
-    .btn-sm{padding:.25rem .75rem;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:.8rem;background:white;margin-right:.25rem}
-    .btn-success{background:#22c55e;color:white;border:none}
-    .card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-    .form-group{margin-bottom:1rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}
-    .form-group input,.form-group select{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box}
-    .data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}
-    .data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}
-    .badge-draft{background:#fef3c7;color:#92400e;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .badge-published{background:#dcfce7;color:#166534;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .badge-archived{background:#f1f5f9;color:#475569;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-  `]
+  styles: []
 })
 export class TimetableComponent implements OnInit {
   versions: any[] = []; entries: any[] = []; semesters: any[] = [];
