@@ -14,19 +14,19 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
     <div class="page-header"><h1>Grade Records</h1></div>
 
     <div class="tabs">
-      <button [class.active]="tab==='grades'" (click)="tab='grades'">Grade Records</button>
-      <button [class.active]="tab==='behavior'" (click)="tab='behavior'">Behavior Feedback</button>
+      <button class="tab-btn" [class.active]="tab==='grades'" (click)="tab='grades'">Grade Records</button>
+      <button class="tab-btn" [class.active]="tab==='behavior'" (click)="tab='behavior'">Behavior Feedback</button>
     </div>
 
     <!-- ====== GRADE RECORDS TAB ====== -->
     <ng-container *ngIf="tab==='grades'">
       <!-- ADD GRADE FORM (Teacher only) -->
-      <div class="card form-card" *ngIf="isTeacher">
-        <div class="form-header" (click)="showGradeForm=!showGradeForm">
-          <h3>+ Add Grade Record</h3>
-          <span class="toggle">{{showGradeForm ? '▲' : '▼'}}</span>
+      <div class="card" *ngIf="isTeacher">
+        <div class="card-header card-header-success" (click)="showGradeForm=!showGradeForm" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <h4 class="card-title">+ Add Grade Record</h4>
+          <span>{{showGradeForm ? '▲' : '▼'}}</span>
         </div>
-        <div *ngIf="showGradeForm" class="form-body">
+        <div class="card-body" *ngIf="showGradeForm">
           <div class="form-grid">
             <div class="form-group">
               <label>Assignment (Subject / Class)</label>
@@ -79,40 +79,48 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
             <label>Notes (optional)</label>
             <textarea [(ngModel)]="gradeForm.notes" rows="2" placeholder="Additional notes..."></textarea>
           </div>
-          <div class="form-actions">
-            <button class="btn-primary" (click)="submitGradeRecord()" [disabled]="gradeSubmitting">
+          <div class="card-footer" style="display:flex;justify-content:flex-end">
+            <button class="btn btn-primary" (click)="submitGradeRecord()" [disabled]="gradeSubmitting">
               {{gradeSubmitting ? 'Saving...' : 'Save Grade Record'}}
             </button>
           </div>
-          <p *ngIf="gradeSuccess" class="success-msg">Grade record saved!</p>
-          <p *ngIf="gradeError" class="error-msg">{{gradeError}}</p>
+          <div class="alert alert-success" *ngIf="gradeSuccess">Grade record saved!</div>
+          <div class="alert alert-danger" *ngIf="gradeError">{{gradeError}}</div>
         </div>
       </div>
 
       <!-- EXISTING RECORDS TABLE -->
       <div class="card">
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Subject</th><th>Score</th><th>Grade</th><th>Assessment</th><th>Date</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let r of gradeRecords">
-              <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.score}}/{{r.maxScore}}</td>
-              <td>{{r.letterGrade}}</td><td>{{r.assessmentType}}</td><td>{{r.recordedDate | localDate:'mediumDate'}}</td>
-            </tr>
-            <tr *ngIf="!gradeRecords.length"><td colspan="6" class="empty-row">No grade records found.</td></tr>
-          </tbody>
-        </table>
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Grade Records</h4>
+          <p class="card-category">All recorded grades</p>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead><tr><th>Student</th><th>Subject</th><th>Score</th><th>Grade</th><th>Assessment</th><th>Date</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let r of gradeRecords">
+                  <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.score}}/{{r.maxScore}}</td>
+                  <td>{{r.letterGrade}}</td><td>{{r.assessmentType}}</td><td>{{r.recordedDate | localDate:'mediumDate'}}</td>
+                </tr>
+                <tr *ngIf="!gradeRecords.length"><td colspan="6" class="empty-row">No grade records found.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </ng-container>
 
     <!-- ====== BEHAVIOR FEEDBACK TAB ====== -->
     <ng-container *ngIf="tab==='behavior'">
       <!-- ADD BEHAVIOR FEEDBACK FORM (Teacher only) -->
-      <div class="card form-card" *ngIf="isTeacher">
-        <div class="form-header" (click)="showBehaviorForm=!showBehaviorForm">
-          <h3>+ Add Behavior Feedback</h3>
-          <span class="toggle">{{showBehaviorForm ? '▲' : '▼'}}</span>
+      <div class="card" *ngIf="isTeacher">
+        <div class="card-header card-header-warning" (click)="showBehaviorForm=!showBehaviorForm" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <h4 class="card-title">+ Add Behavior Feedback</h4>
+          <span>{{showBehaviorForm ? '▲' : '▼'}}</span>
         </div>
-        <div *ngIf="showBehaviorForm" class="form-body">
+        <div class="card-body" *ngIf="showBehaviorForm">
           <div class="form-grid">
             <div class="form-group">
               <label>Assignment (Subject / Class)</label>
@@ -157,55 +165,39 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
               <textarea [(ngModel)]="behaviorForm.description" rows="2" placeholder="Describe the behavior..."></textarea>
             </div>
           </div>
-          <div class="form-actions">
-            <button class="btn-primary" (click)="submitBehaviorFeedback()" [disabled]="behaviorSubmitting">
+          <div class="card-footer" style="display:flex;justify-content:flex-end">
+            <button class="btn btn-primary" (click)="submitBehaviorFeedback()" [disabled]="behaviorSubmitting">
               {{behaviorSubmitting ? 'Saving...' : 'Save Feedback'}}
             </button>
           </div>
-          <p *ngIf="behaviorSuccess" class="success-msg">Behavior feedback saved!</p>
-          <p *ngIf="behaviorError" class="error-msg">{{behaviorError}}</p>
+          <div class="alert alert-success" *ngIf="behaviorSuccess">Behavior feedback saved!</div>
+          <div class="alert alert-danger" *ngIf="behaviorError">{{behaviorError}}</div>
         </div>
       </div>
 
       <!-- EXISTING BEHAVIOR TABLE -->
       <div class="card">
-        <table class="data-table">
-          <thead><tr><th>Student</th><th>Category</th><th>Rating</th><th>Description</th><th>Date</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let b of behaviorFeedback">
-              <td>{{b.studentName}}</td><td>{{b.category}}</td><td>{{b.rating}}/5</td><td>{{b.description}}</td><td>{{b.recordedDate | localDate:'mediumDate'}}</td>
-            </tr>
-            <tr *ngIf="!behaviorFeedback.length"><td colspan="5" class="empty-row">No behavior feedback found.</td></tr>
-          </tbody>
-        </table>
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Behavior Feedback</h4>
+          <p class="card-category">All recorded behavior feedback</p>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table">
+              <thead><tr><th>Student</th><th>Category</th><th>Rating</th><th>Description</th><th>Date</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let b of behaviorFeedback">
+                  <td>{{b.studentName}}</td><td>{{b.category}}</td><td>{{b.rating}}/5</td><td>{{b.description}}</td><td>{{b.recordedDate | localDate:'mediumDate'}}</td>
+                </tr>
+                <tr *ngIf="!behaviorFeedback.length"><td colspan="5" class="empty-row">No behavior feedback found.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </ng-container>
   `,
-  styles: [`
-    .page-header{margin-bottom:1.5rem}.page-header h1{margin:0}
-    .tabs{display:flex;gap:.5rem;margin-bottom:1rem}
-    .tabs button{padding:.5rem 1rem;border:1px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer}
-    .tabs button.active{background:#0f172a;color:white;border-color:#0f172a}
-    .card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}
-    .form-card{border:1px solid #e2e8f0}
-    .form-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .form-header h3{margin:0;color:#0f172a;font-size:1rem}.toggle{color:#64748b}
-    .form-body{margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:.75rem}
-    .form-group{margin-bottom:.5rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}
-    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:.875rem}
-    .form-group textarea{resize:vertical}
-    .form-actions{display:flex;justify-content:flex-end;margin-top:.75rem}
-    .btn-primary{padding:.5rem 1.25rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.875rem}
-    .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-    .rating-buttons{display:flex;gap:.25rem}
-    .rating-btn{width:36px;height:36px;border:2px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer;font-weight:700;font-size:.875rem}
-    .rating-btn.selected{background:#0f172a;color:white;border-color:#0f172a}
-    .data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}
-    .data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}
-    .empty-row{text-align:center;color:#94a3b8;font-style:italic}
-    .success-msg{color:#166534;font-weight:600;margin:.5rem 0 0}.error-msg{color:#991b1b;font-weight:600;margin:.5rem 0 0}
-  `]
+  styles: [':host { display: block; }']
 })
 export class GradesRecordsComponent implements OnInit {
   tab = 'grades';

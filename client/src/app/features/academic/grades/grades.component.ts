@@ -8,21 +8,38 @@ import { AcademicService } from '@core/services/data.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-header"><h1>Grades</h1>
-      <button class="btn-primary" (click)="showForm=!showForm">{{ showForm ? 'Cancel' : '+ Add' }}</button>
-    </div>
     <div class="card" *ngIf="showForm">
-      <div class="form-row">
-        <div class="form-group"><label>Name</label><input [(ngModel)]="form.name" /></div>
-        <div class="form-group"><label>Order Index</label><input type="number" [(ngModel)]="form.orderIndex" /></div>
+      <div class="card-header card-header-info">
+        <h4 class="card-title">Add Grade</h4>
+        <p class="card-category">Create a new grade level</p>
       </div>
-      <button class="btn-primary" (click)="save()">Save</button>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input [(ngModel)]="form.name" /></div>
+          <div class="form-group"><label>Order Index</label><input type="number" [(ngModel)]="form.orderIndex" /></div>
+        </div>
+        <button class="btn btn-primary" (click)="save()">Save</button>
+        <button class="btn btn-default" (click)="showForm=false">Cancel</button>
+      </div>
     </div>
-    <div class="card"><table class="data-table"><thead><tr><th>Name</th><th>Order</th><th>Actions</th></tr></thead>
-      <tbody><tr *ngFor="let g of items"><td>{{g.name}}</td><td>{{g.orderIndex}}</td>
-        <td><button class="btn-sm btn-danger" (click)="remove(g.id)">Delete</button></td></tr></tbody></table></div>
+    <div class="card">
+      <div class="card-header card-header-success">
+        <h4 class="card-title">Grades</h4>
+        <p class="card-category">Manage grade levels</p>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-primary" (click)="showForm=!showForm" style="margin-bottom:15px">{{ showForm ? 'Cancel' : '+ Add' }}</button>
+        <div class="table-responsive">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Order</th><th>Actions</th></tr></thead>
+            <tbody><tr *ngFor="let g of items"><td>{{g.name}}</td><td>{{g.orderIndex}}</td>
+              <td><button class="btn btn-sm btn-danger" (click)="remove(g.id)">Delete</button></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   `,
-  styles: [`.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}.page-header h1{margin:0}.btn-primary{padding:.5rem 1rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer}.btn-sm{padding:.25rem .75rem;border:none;border-radius:4px;cursor:pointer;font-size:.8rem}.btn-danger{background:#ef4444;color:#fff}.card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.form-group{margin-bottom:1rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}.form-group input{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box}.data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}.data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}`]
+  styles: [`:host { display: block; }`]
 })
 export class GradesComponent implements OnInit {
   items: any[] = []; showForm = false; form: any = {};

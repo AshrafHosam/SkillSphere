@@ -14,13 +14,19 @@ import { InternalReportCategory } from '@core/models/enums';
   template: `
     <div class="page-header"><h1>Internal Reports</h1></div>
 
+    <!-- ====== TABS ====== -->
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="!selectedReport" (click)="selectedReport=null">Reports List</button>
+      <button class="tab-btn" [class.active]="selectedReport" *ngIf="selectedReport">Report Detail</button>
+    </div>
+
     <!-- ====== CREATE REPORT FORM (Teacher only) ====== -->
-    <div class="card form-card" *ngIf="isTeacher">
-      <div class="form-header" (click)="showCreateForm=!showCreateForm">
-        <h3>+ Create Internal Report</h3>
-        <span class="toggle">{{showCreateForm ? '▲' : '▼'}}</span>
+    <div class="card" *ngIf="isTeacher">
+      <div class="card-header card-header-danger" (click)="showCreateForm=!showCreateForm" style="cursor:pointer">
+        <h4 class="card-title">+ Create Internal Report</h4>
+        <p class="card-category">{{showCreateForm ? '▲' : '▼'}}</p>
       </div>
-      <div *ngIf="showCreateForm" class="form-body">
+      <div class="card-body" *ngIf="showCreateForm">
         <div class="form-grid">
           <div class="form-group">
             <label>Category</label>
@@ -54,91 +60,87 @@ import { InternalReportCategory } from '@core/models/enums';
           <label>Description</label>
           <textarea [(ngModel)]="createForm.description" rows="4" placeholder="Detailed description of the report..."></textarea>
         </div>
-        <div class="form-actions">
-          <button class="btn-primary" (click)="createReport()" [disabled]="createSubmitting">
+        <div class="card-footer">
+          <button class="btn btn-primary" (click)="createReport()" [disabled]="createSubmitting">
             {{createSubmitting ? 'Submitting...' : 'Submit Report'}}
           </button>
         </div>
-        <p *ngIf="createSuccess" class="success-msg">Internal report created!</p>
-        <p *ngIf="createError" class="error-msg">{{createError}}</p>
+        <div class="alert alert-success" *ngIf="createSuccess">Internal report created!</div>
+        <div class="alert alert-danger" *ngIf="createError">{{createError}}</div>
       </div>
     </div>
 
     <!-- ====== REPORTS LIST ====== -->
-    <div class="card">
-      <table class="data-table">
-        <thead><tr><th>Title</th><th>Category</th><th>Reporter</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let r of reports">
-            <td>{{r.title}}</td><td>{{r.category}}</td><td>{{r.reporterName}}</td>
-            <td><span [class]="'badge-' + statusClass(r.status)">{{r.status}}</span></td>
-            <td>{{r.createdAt | localDate:'mediumDate'}}</td>
-            <td><button class="btn-sm" (click)="viewReport(r)">View</button></td>
-          </tr>
-          <tr *ngIf="!reports.length"><td colspan="6" class="empty-row">No internal reports found.</td></tr>
-        </tbody>
-      </table>
+    <div class="card" *ngIf="!selectedReport">
+      <div class="card-header card-header-rose">
+        <h4 class="card-title">Reports List</h4>
+        <p class="card-category">All internal reports</p>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead><tr><th>Title</th><th>Category</th><th>Reporter</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let r of reports">
+                <td>{{r.title}}</td><td>{{r.category}}</td><td>{{r.reporterName}}</td>
+                <td><span [class]="'badge-' + statusClass(r.status)">{{r.status}}</span></td>
+                <td>{{r.createdAt | localDate:'mediumDate'}}</td>
+                <td><button class="btn btn-sm btn-primary" (click)="viewReport(r)">View</button></td>
+              </tr>
+              <tr *ngIf="!reports.length"><td colspan="6" class="empty-row">No internal reports found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ====== REPORT DETAIL ====== -->
     <div class="card" *ngIf="selectedReport">
-      <div class="detail-header">
-        <h3>{{selectedReport.title}}</h3>
-        <button class="btn-sm" (click)="selectedReport=null">Close</button>
+      <div class="card-header card-header-primary">
+        <h4 class="card-title">{{selectedReport.title}}</h4>
+        <p class="card-category">{{selectedReport.category}} | {{selectedReport.status}} | Reporter: {{selectedReport.reporterName}}</p>
       </div>
-      <p class="meta">{{selectedReport.category}} | {{selectedReport.status}} | Reporter: {{selectedReport.reporterName}}</p>
-      <p *ngIf="selectedReport.studentName"><strong>Student:</strong> {{selectedReport.studentName}}</p>
-      <p>{{selectedReport.description}}</p>
+      <div class="card-body">
+        <div class="detail-view">
+          <div class="detail-header">
+            <h3>{{selectedReport.title}}</h3>
+            <button class="btn btn-sm btn-danger" (click)="selectedReport=null">Close</button>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item"><label>Category</label><span>{{selectedReport.category}}</span></div>
+            <div class="detail-item"><label>Status</label><span [class]="'badge-' + statusClass(selectedReport.status)">{{selectedReport.status}}</span></div>
+            <div class="detail-item"><label>Reporter</label><span>{{selectedReport.reporterName}}</span></div>
+            <div class="detail-item" *ngIf="selectedReport.studentName"><label>Student</label><span>{{selectedReport.studentName}}</span></div>
+          </div>
+          <p>{{selectedReport.description}}</p>
+        </div>
 
-      <h4>Comments</h4>
-      <div *ngFor="let c of selectedReport.comments" class="comment">
-        <strong>{{c.authorName}}</strong> <small>{{c.createdAt | localDate:'short'}}</small>
-        <p>{{c.content}}</p>
-      </div>
+        <!-- Comments Section -->
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">Comments</h4>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let c of selectedReport.comments" class="comment">
+              <strong>{{c.authorName}}</strong> <small>{{c.createdAt | localDate:'short'}}</small>
+              <p>{{c.content}}</p>
+            </div>
 
-      <div class="form-group" style="margin-top:1rem">
-        <textarea [(ngModel)]="newComment" rows="3" placeholder="Add a comment..."></textarea>
-        <button class="btn-primary" (click)="addComment()" style="margin-top:.5rem">Add Comment</button>
-      </div>
+            <div class="form-group" style="margin-top:1rem">
+              <textarea [(ngModel)]="newComment" rows="3" placeholder="Add a comment..."></textarea>
+              <button class="btn btn-primary" (click)="addComment()" style="margin-top:.5rem">Add Comment</button>
+            </div>
+          </div>
+        </div>
 
-      <div class="action-buttons" *ngIf="selectedReport.status !== 'Resolved' && selectedReport.status !== 'Closed'">
-        <button class="btn-sm btn-warning" (click)="escalate()">Escalate</button>
-        <button class="btn-sm btn-success" (click)="resolve()">Resolve</button>
+        <div class="card-footer" *ngIf="selectedReport.status !== 'Resolved' && selectedReport.status !== 'Closed'">
+          <button class="btn btn-sm btn-warning" (click)="escalate()">Escalate</button>
+          <button class="btn btn-sm btn-success" (click)="resolve()">Resolve</button>
+        </div>
       </div>
     </div>
   `,
-  styles: [`
-    .page-header{margin-bottom:1.5rem}.page-header h1{margin:0}
-    .card{background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);margin-bottom:1rem}
-    .form-card{border:1px solid #e2e8f0}
-    .form-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-    .form-header h3{margin:0;color:#0f172a;font-size:1rem}.toggle{color:#64748b}
-    .form-body{margin-top:1rem;padding-top:1rem;border-top:1px solid #f1f5f9}
-    .form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:.75rem}
-    .form-group{margin-bottom:.75rem}.form-group label{display:block;margin-bottom:.25rem;font-weight:600;font-size:.875rem;color:#334155}
-    .form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:4px;box-sizing:border-box;font-size:.875rem}
-    .form-group textarea{resize:vertical}
-    .form-actions{display:flex;justify-content:flex-end;margin-top:.5rem}
-    .btn-primary{padding:.5rem 1.25rem;background:#0f172a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.875rem}
-    .btn-primary:disabled{opacity:.6;cursor:not-allowed}
-    .btn-sm{padding:.25rem .75rem;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:.8rem;background:white;margin-right:.25rem}
-    .btn-warning{background:#f59e0b;color:white;border:none}.btn-success{background:#22c55e;color:white;border:none}
-    .data-table{width:100%;border-collapse:collapse}.data-table th,.data-table td{padding:.75rem;text-align:left;border-bottom:1px solid #e2e8f0}
-    .data-table th{font-weight:600;color:#64748b;font-size:.8rem;text-transform:uppercase}
-    .badge-open{background:#dbeafe;color:#1e40af;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .badge-inprogress{background:#fef3c7;color:#92400e;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .badge-escalated{background:#fef2f2;color:#991b1b;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .badge-resolved{background:#dcfce7;color:#166534;padding:.2rem .5rem;border-radius:12px;font-size:.75rem}
-    .detail-header{display:flex;justify-content:space-between;align-items:center}
-    .detail-header h3{margin:0}
-    .meta{color:#64748b;font-size:.875rem;margin-bottom:1rem}
-    .comment{padding:.75rem;background:#f8fafc;border-radius:6px;margin-bottom:.5rem}
-    .comment p{margin:.25rem 0 0;font-size:.875rem}.comment small{color:#94a3b8;margin-left:.5rem}
-    .form-group textarea{resize:vertical}
-    .action-buttons{display:flex;gap:.5rem;margin-top:1rem}
-    .empty-row{text-align:center;color:#94a3b8;font-style:italic}
-    .success-msg{color:#166534;font-weight:600;margin:.5rem 0 0}.error-msg{color:#991b1b;font-weight:600;margin:.5rem 0 0}
-  `]
+  styles: [':host { display: block; }']
 })
 export class InternalReportsComponent implements OnInit {
   reports: any[] = [];

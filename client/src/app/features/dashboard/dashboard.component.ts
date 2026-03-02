@@ -9,170 +9,311 @@ import { AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, Supervisor
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <p>Welcome back, {{ auth.fullName }}</p>
-    </div>
-
     <!-- Admin / SuperAdmin Dashboard -->
-    <div *ngIf="auth.userRole === 'SchoolAdmin' || auth.userRole === 'PlatformSuperAdmin'" class="dashboard-grid">
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalTeachers || 0 }}</h3>
-        <p>Teachers</p>
+    <div *ngIf="auth.userRole === 'SchoolAdmin' || auth.userRole === 'PlatformSuperAdmin'">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-info">
+              <div class="card-icon"><i class="material-icons">person</i></div>
+              <p class="card-category">Teachers</p>
+              <h3 class="card-title">{{ adminData?.totalTeachers || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">school</i> Active staff members</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-success">
+              <div class="card-icon"><i class="material-icons">people</i></div>
+              <p class="card-category">Students</p>
+              <h3 class="card-title">{{ adminData?.totalStudents || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">groups</i> Enrolled students</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-warning">
+              <div class="card-icon"><i class="material-icons">family_restroom</i></div>
+              <p class="card-category">Parents</p>
+              <h3 class="card-title">{{ adminData?.totalParents || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">verified_user</i> Registered parents</div></div>
+          </div>
+        </div>
+        <div class="col-md-3" *ngIf="(adminData?.openEscalations || 0) > 0">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-danger">
+              <div class="card-icon"><i class="material-icons">warning</i></div>
+              <p class="card-category">Open Escalations</p>
+              <h3 class="card-title">{{ adminData?.openEscalations }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">priority_high</i> Requires attention</div></div>
+          </div>
+        </div>
       </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalStudents || 0 }}</h3>
-        <p>Students</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.totalParents || 0 }}</h3>
-        <p>Parents</p>
-      </div>
-      <div class="card stat-card alert" *ngIf="(adminData?.openEscalations || 0) > 0">
-        <h3>{{ adminData?.openEscalations }}</h3>
-        <p>Open Escalations</p>
-      </div>
-      <div class="card stat-card" *ngIf="adminData?.unresolvedInternalReports">
-        <h3>{{ adminData?.unresolvedInternalReports }}</h3>
-        <p>Unresolved Reports</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ adminData?.notificationStatus?.delivered || 0 }}</h3>
-        <p>Notifications Delivered</p>
+      <div class="row">
+        <div class="col-md-3" *ngIf="adminData?.unresolvedInternalReports">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-rose">
+              <div class="card-icon"><i class="material-icons">report_problem</i></div>
+              <p class="card-category">Unresolved Reports</p>
+              <h3 class="card-title">{{ adminData?.unresolvedInternalReports }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">pending_actions</i> Awaiting resolution</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-info">
+              <div class="card-icon"><i class="material-icons">notifications_active</i></div>
+              <p class="card-category">Notifications</p>
+              <h3 class="card-title">{{ adminData?.notificationStatus?.delivered || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">check_circle</i> Delivered</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Manager Dashboard -->
-    <div *ngIf="auth.userRole === 'SchoolManager'" class="dashboard-grid">
-      <div class="card stat-card" [class.alert]="(managerData?.missingAttendance || 0) > 0">
-        <h3>{{ managerData?.missingAttendance || 0 }}</h3>
-        <p>Missing Attendance</p>
-      </div>
-      <div class="card stat-card" [class.alert]="(managerData?.missingWeeklyReports || 0) > 0">
-        <h3>{{ managerData?.missingWeeklyReports || 0 }}</h3>
-        <p>Missing Weekly Reports</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ managerData?.timetableConflicts || 0 }}</h3>
-        <p>Timetable Conflicts</p>
-      </div>
-      <div class="card stat-card" [class.alert]="(managerData?.studentRiskQueue || 0) > 0">
-        <h3>{{ managerData?.studentRiskQueue || 0 }}</h3>
-        <p>Students at Risk</p>
+    <div *ngIf="auth.userRole === 'SchoolManager'">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'card-header-danger' : 'card-header-success'">
+              <div class="card-icon"><i class="material-icons">fact_check</i></div>
+              <p class="card-category">Missing Attendance</p>
+              <h3 class="card-title">{{ managerData?.missingAttendance || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">today</i> Today's records</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'card-header-warning' : 'card-header-success'">
+              <div class="card-icon"><i class="material-icons">summarize</i></div>
+              <p class="card-category">Missing Reports</p>
+              <h3 class="card-title">{{ managerData?.missingWeeklyReports || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">pending</i> Weekly reports due</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-info">
+              <div class="card-icon"><i class="material-icons">schedule</i></div>
+              <p class="card-category">Timetable Conflicts</p>
+              <h3 class="card-title">{{ managerData?.timetableConflicts || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">event_busy</i> Scheduling issues</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'card-header-danger' : 'card-header-success'">
+              <div class="card-icon"><i class="material-icons">health_and_safety</i></div>
+              <p class="card-category">Students at Risk</p>
+              <h3 class="card-title">{{ managerData?.studentRiskQueue || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">monitor_heart</i> Requires follow-up</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Teacher Dashboard -->
-    <div *ngIf="auth.userRole === 'Teacher'" class="dashboard-grid">
-      <div class="card stat-card">
-        <h3>{{ teacherData?.todaySessions?.length || 0 }}</h3>
-        <p>Today's Sessions</p>
+    <div *ngIf="auth.userRole === 'Teacher'">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-info">
+              <div class="card-icon"><i class="material-icons">event</i></div>
+              <p class="card-category">Today's Sessions</p>
+              <h3 class="card-title">{{ teacherData?.todaySessions?.length || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">schedule</i> Scheduled today</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon" [ngClass]="(teacherData?.attendanceTasksDue || 0) > 0 ? 'card-header-danger' : 'card-header-success'">
+              <div class="card-icon"><i class="material-icons">checklist</i></div>
+              <p class="card-category">Attendance Due</p>
+              <h3 class="card-title">{{ teacherData?.attendanceTasksDue || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">pending_actions</i> Awaiting submission</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-warning">
+              <div class="card-icon"><i class="material-icons">description</i></div>
+              <p class="card-category">Reports Due</p>
+              <h3 class="card-title">{{ teacherData?.weeklyReportTasksDue || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">edit_note</i> Weekly reports pending</div></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-success">
+              <div class="card-icon"><i class="material-icons">people</i></div>
+              <p class="card-category">My Students</p>
+              <h3 class="card-title">{{ teacherData?.totalAssignedStudents || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">school</i> Assigned students</div></div>
+          </div>
+        </div>
       </div>
-      <div class="card stat-card" [class.alert]="(teacherData?.attendanceTasksDue || 0) > 0">
-        <h3>{{ teacherData?.attendanceTasksDue || 0 }}</h3>
-        <p>Attendance Due</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ teacherData?.weeklyReportTasksDue || 0 }}</h3>
-        <p>Reports Due</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ teacherData?.totalAssignedStudents || 0 }}</h3>
-        <p>My Students</p>
-      </div>
-    </div>
 
-    <!-- Today's Schedule (Teacher) -->
-    <div *ngIf="auth.userRole === 'Teacher' && teacherData?.todaySessions?.length" class="card" style="margin-top:1rem">
-      <h3>Today's Schedule</h3>
-      <table class="data-table">
-        <thead><tr><th>Time</th><th>Subject</th><th>Class</th><th>Room</th><th>Attendance</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let s of teacherData!.todaySessions">
-            <td>{{ s.startTime }} - {{ s.endTime }}</td>
-            <td>{{ s.subjectName }}</td>
-            <td>{{ s.gradeName }} {{ s.className }}</td>
-            <td>{{ s.room || '-' }}</td>
-            <td><span [class]="s.attendanceSubmitted ? 'badge-done' : 'badge-pending'">{{ s.attendanceSubmitted ? 'Done' : 'Pending' }}</span></td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Today's Schedule -->
+      <div class="row" *ngIf="teacherData?.todaySessions?.length">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header card-header-primary">
+              <h4 class="card-title">Today's Schedule</h4>
+              <p class="card-category">Your sessions for today</p>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead><tr><th>Time</th><th>Subject</th><th>Class</th><th>Room</th><th>Attendance</th></tr></thead>
+                  <tbody>
+                    <tr *ngFor="let s of teacherData!.todaySessions">
+                      <td>{{ s.startTime }} - {{ s.endTime }}</td>
+                      <td>{{ s.subjectName }}</td>
+                      <td>{{ s.gradeName }} {{ s.className }}</td>
+                      <td>{{ s.room || '-' }}</td>
+                      <td><span [class]="s.attendanceSubmitted ? 'badge badge-success' : 'badge badge-warning'">{{ s.attendanceSubmitted ? 'Done' : 'Pending' }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Supervisor Dashboard -->
-    <div *ngIf="auth.userRole === 'TeacherSupervisor'" class="dashboard-grid">
-      <div class="card stat-card" [class.alert]="(supervisorData?.internalReportsInbox || 0) > 0">
-        <h3>{{ supervisorData?.internalReportsInbox || 0 }}</h3>
-        <p>Reports Inbox</p>
+    <div *ngIf="auth.userRole === 'TeacherSupervisor'">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon" [ngClass]="(supervisorData?.internalReportsInbox || 0) > 0 ? 'card-header-danger' : 'card-header-success'">
+              <div class="card-icon"><i class="material-icons">inbox</i></div>
+              <p class="card-category">Reports Inbox</p>
+              <h3 class="card-title">{{ supervisorData?.internalReportsInbox || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">mail</i> Pending review</div></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-warning">
+              <div class="card-icon"><i class="material-icons">gpp_maybe</i></div>
+              <p class="card-category">Compliance Alerts</p>
+              <h3 class="card-title">{{ supervisorData?.complianceAlerts || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">policy</i> Policy alerts</div></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card card-stats">
+            <div class="card-header card-header-icon card-header-info">
+              <div class="card-icon"><i class="material-icons">trending_up</i></div>
+              <p class="card-category">Trending Students</p>
+              <h3 class="card-title">{{ supervisorData?.trendingStudents?.length || 0 }}</h3>
+            </div>
+            <div class="card-footer"><div class="stats"><i class="material-icons">analytics</i> Multiple reports</div></div>
+          </div>
+        </div>
       </div>
-      <div class="card stat-card">
-        <h3>{{ supervisorData?.complianceAlerts || 0 }}</h3>
-        <p>Compliance Alerts</p>
-      </div>
-      <div class="card stat-card">
-        <h3>{{ supervisorData?.trendingStudents?.length || 0 }}</h3>
-        <p>Trending Students</p>
-      </div>
-    </div>
 
-    <!-- Trending Students list (Supervisor) -->
-    <div *ngIf="auth.userRole === 'TeacherSupervisor' && supervisorData?.trendingStudents?.length" class="card" style="margin-top:1rem">
-      <h3>Trending Students (Multiple Reports)</h3>
-      <table class="data-table">
-        <thead><tr><th>Student</th><th>Report Count</th><th>Latest Category</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let s of supervisorData!.trendingStudents">
-            <td>{{ s.studentName }}</td>
-            <td>{{ s.reportCount }}</td>
-            <td>{{ s.latestCategory }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Trending Students Table -->
+      <div class="row" *ngIf="supervisorData?.trendingStudents?.length">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header card-header-warning">
+              <h4 class="card-title">Trending Students</h4>
+              <p class="card-category">Students with multiple reports</p>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead><tr><th>Student</th><th>Report Count</th><th>Latest Category</th></tr></thead>
+                  <tbody>
+                    <tr *ngFor="let s of supervisorData!.trendingStudents">
+                      <td>{{ s.studentName }}</td>
+                      <td>{{ s.reportCount }}</td>
+                      <td>{{ s.latestCategory }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Parent Dashboard -->
-    <div *ngIf="auth.userRole === 'Parent'" class="dashboard-grid">
-      <div class="card" *ngFor="let child of parentData?.studentCards || []">
-        <h3>{{ child.studentName }}</h3>
-        <p class="meta">{{ child.gradeName }} - {{ child.className }}</p>
-        <div class="child-stats">
-          <div><strong>{{ child.totalWeeklyReports }}</strong><span>Reports</span></div>
-          <div><strong>{{ child.averageGrade ? (child.averageGrade | number:'1.0-1') : 'N/A' }}</strong><span>Avg Score</span></div>
+    <div *ngIf="auth.userRole === 'Parent'">
+      <div class="row">
+        <div class="col-md-4" *ngFor="let child of parentData?.studentCards || []">
+          <div class="card">
+            <div class="card-header card-header-info">
+              <h4 class="card-title">{{ child.studentName }}</h4>
+              <p class="card-category">{{ child.gradeName }} - {{ child.className }}</p>
+            </div>
+            <div class="card-body">
+              <div class="child-stats-row">
+                <div class="child-stat">
+                  <span class="stat-value">{{ child.totalWeeklyReports }}</span>
+                  <span class="stat-label">Reports</span>
+                </div>
+                <div class="child-stat">
+                  <span class="stat-value">{{ child.averageGrade ? (child.averageGrade | number:'1.0-1') : 'N/A' }}</span>
+                  <span class="stat-label">Avg Score</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Student Dashboard -->
-    <div *ngIf="auth.userRole === 'Student'" class="card">
-      <h3>Student Portal</h3>
-      <p>Welcome to your student dashboard. Check your weekly reports and attendance from the navigation menu.</p>
+    <div *ngIf="auth.userRole === 'Student'">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header card-header-primary">
+              <h4 class="card-title">Student Portal</h4>
+              <p class="card-category">Your learning hub</p>
+            </div>
+            <div class="card-body">
+              <p>Welcome to your student dashboard. Check your weekly reports and attendance from the navigation menu.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Loading state -->
-    <div *ngIf="loading" class="card">
-      <p>Loading dashboard data...</p>
+    <!-- Loading -->
+    <div *ngIf="loading" class="row">
+      <div class="col-md-12">
+        <div class="card"><div class="card-body"><p class="text-muted">Loading dashboard data...</p></div></div>
+      </div>
     </div>
   `,
   styles: [`
-    .page-header { margin-bottom: 2rem; }
-    .page-header h1 { margin: 0 0 0.25rem; color: #0f172a; }
-    .page-header p { color: #64748b; margin: 0; }
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .stat-card h3 { font-size: 2rem; margin: 0 0 0.25rem; color: #0f172a; }
-    .stat-card p { margin: 0; color: #64748b; font-size: 0.875rem; }
-    .stat-card.alert { border-left: 4px solid #ef4444; }
-    .stat-card.alert h3 { color: #dc2626; }
-    .meta { color: #64748b; font-size: 0.875rem; margin: 0.25rem 0 1rem; }
-    .child-stats { display: flex; gap: 2rem; margin-top: 1rem; }
-    .child-stats div { text-align: center; }
-    .child-stats strong { display: block; font-size: 1.5rem; color: #0f172a; }
-    .child-stats span { font-size: 0.75rem; color: #64748b; }
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-    .data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-    .badge-done { background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-    .badge-pending { background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
+    .child-stats-row { display: flex; gap: 2rem; justify-content: center; padding: 1rem 0; }
+    .child-stat { text-align: center; }
+    .child-stat .stat-value { display: block; font-size: 1.75rem; font-weight: 300; color: #3c4858; }
+    .child-stat .stat-label { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
   `]
 })
 export class DashboardComponent implements OnInit {

@@ -41,7 +41,7 @@ const COUNTRY_CODES: CountryCode[] = [
   template: `
     <div class="page-header">
       <h1>Schools (Tenants)</h1>
-      <button class="btn-primary" (click)="toggleForm()">{{ showForm ? 'Cancel' : '+ Add School' }}</button>
+      <button class="btn btn-primary" (click)="toggleForm()">{{ showForm ? 'Cancel' : '+ Add School' }}</button>
     </div>
 
     <div class="alert alert-danger" *ngIf="errorMessage">
@@ -57,208 +57,159 @@ const COUNTRY_CODES: CountryCode[] = [
     </div>
 
     <div class="card form-card" *ngIf="showForm">
-      <h3>Onboard New School</h3>
-      <form [formGroup]="schoolForm" (ngSubmit)="create()">
-        <!-- School Info -->
-        <div class="form-section-title">School Information</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>School Name <span class="required">*</span></label>
-            <input formControlName="name" placeholder="e.g. Al Abtal Academy" />
-            <div class="field-error" *ngIf="showError('name')">
-              <span *ngIf="schoolForm.get('name')?.errors?.['required']">School name is required.</span>
-              <span *ngIf="schoolForm.get('name')?.errors?.['minlength']">Must be at least 2 characters.</span>
-              <span *ngIf="schoolForm.get('name')?.errors?.['maxlength']">Must be under 100 characters.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Subdomain / Code <span class="required">*</span></label>
-            <input formControlName="code" placeholder="e.g. al-abtal" />
-            <div class="field-hint" *ngIf="!showError('code')">Lowercase letters, numbers, and hyphens only.</div>
-            <div class="field-error" *ngIf="showError('code')">
-              <span *ngIf="schoolForm.get('code')?.errors?.['required']">Subdomain code is required.</span>
-              <span *ngIf="schoolForm.get('code')?.errors?.['minlength']">Must be at least 3 characters.</span>
-              <span *ngIf="schoolForm.get('code')?.errors?.['maxlength']">Must be under 50 characters.</span>
-              <span *ngIf="schoolForm.get('code')?.errors?.['pattern']">Only lowercase letters, numbers, and hyphens allowed.</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Contact Email</label>
-            <input formControlName="email" type="email" placeholder="e.g. info&#64;school.com" />
-            <div class="field-error" *ngIf="showError('email')">
-              <span *ngIf="schoolForm.get('email')?.errors?.['email']">Enter a valid email address.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <div class="phone-input-group">
-              <select formControlName="countryCode" class="country-select">
-                <option value="">Country</option>
-                <option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.dial }})</option>
-              </select>
-              <input formControlName="phoneNumber" class="phone-number-input"
-                     [placeholder]="selectedCountry?.phonePlaceholder || 'Phone number'" />
-            </div>
-            <div class="field-error" *ngIf="showError('phoneNumber')">
-              <span *ngIf="schoolForm.get('phoneNumber')?.errors?.['invalidPhone']">
-                Invalid phone number for {{ selectedCountry?.name || 'selected country' }}.
-              </span>
-            </div>
-            <div class="field-error" *ngIf="schoolForm.get('phoneNumber')?.value && !schoolForm.get('countryCode')?.value">
-              <span>Please select a country first.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Admin Account -->
-        <div class="form-section-title">Admin Account</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Admin Email <span class="required">*</span></label>
-            <input formControlName="adminEmail" type="email" placeholder="e.g. admin&#64;school.com" />
-            <div class="field-error" *ngIf="showError('adminEmail')">
-              <span *ngIf="schoolForm.get('adminEmail')?.errors?.['required']">Admin email is required.</span>
-              <span *ngIf="schoolForm.get('adminEmail')?.errors?.['email']">Enter a valid email address.</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Admin Password <span class="required">*</span></label>
-            <div class="password-wrapper">
-              <input formControlName="adminPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Min 8 chars, uppercase, number, symbol" />
-              <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
-                {{ showPassword ? '🙈' : '👁' }}
-              </button>
-            </div>
-            <div class="password-strength" *ngIf="schoolForm.get('adminPassword')?.value">
-              <div class="strength-bar">
-                <div class="strength-fill" [style.width.%]="passwordStrength" [class]="passwordStrengthClass"></div>
+      <div class="card-header card-header-info">
+        <h4 class="card-title">Onboard New School</h4>
+        <p class="card-category">Fill in the details to create a new school tenant</p>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="schoolForm" (ngSubmit)="create()">
+          <!-- School Info -->
+          <div class="form-section-title">School Information</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>School Name <span class="required">*</span></label>
+              <input formControlName="name" placeholder="e.g. Al Abtal Academy" />
+              <div class="field-error" *ngIf="showError('name')">
+                <span *ngIf="schoolForm.get('name')?.errors?.['required']">School name is required.</span>
+                <span *ngIf="schoolForm.get('name')?.errors?.['minlength']">Must be at least 2 characters.</span>
+                <span *ngIf="schoolForm.get('name')?.errors?.['maxlength']">Must be under 100 characters.</span>
               </div>
-              <span class="strength-label" [class]="passwordStrengthClass">{{ passwordStrengthLabel }}</span>
             </div>
-            <div class="field-error" *ngIf="showError('adminPassword')">
-              <span *ngIf="schoolForm.get('adminPassword')?.errors?.['required']">Password is required.</span>
-              <span *ngIf="schoolForm.get('adminPassword')?.errors?.['minlength']">Must be at least 8 characters.</span>
-              <span *ngIf="schoolForm.get('adminPassword')?.errors?.['passwordStrength']">
-                {{ schoolForm.get('adminPassword')?.errors?.['passwordStrength'] }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Admin First Name <span class="required">*</span></label>
-            <input formControlName="adminFirstName" placeholder="e.g. Ahmed" />
-            <div class="field-error" *ngIf="showError('adminFirstName')">
-              <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['required']">First name is required.</span>
-              <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['minlength']">Must be at least 2 characters.</span>
-              <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['maxlength']">Must be under 50 characters.</span>
+            <div class="form-group">
+              <label>Subdomain / Code <span class="required">*</span></label>
+              <input formControlName="code" placeholder="e.g. al-abtal" />
+              <div class="field-hint" *ngIf="!showError('code')">Lowercase letters, numbers, and hyphens only.</div>
+              <div class="field-error" *ngIf="showError('code')">
+                <span *ngIf="schoolForm.get('code')?.errors?.['required']">Subdomain code is required.</span>
+                <span *ngIf="schoolForm.get('code')?.errors?.['minlength']">Must be at least 3 characters.</span>
+                <span *ngIf="schoolForm.get('code')?.errors?.['maxlength']">Must be under 50 characters.</span>
+                <span *ngIf="schoolForm.get('code')?.errors?.['pattern']">Only lowercase letters, numbers, and hyphens allowed.</span>
+              </div>
             </div>
           </div>
-          <div class="form-group">
-            <label>Admin Last Name <span class="required">*</span></label>
-            <input formControlName="adminLastName" placeholder="e.g. Fahmy" />
-            <div class="field-error" *ngIf="showError('adminLastName')">
-              <span *ngIf="schoolForm.get('adminLastName')?.errors?.['required']">Last name is required.</span>
-              <span *ngIf="schoolForm.get('adminLastName')?.errors?.['minlength']">Must be at least 2 characters.</span>
-              <span *ngIf="schoolForm.get('adminLastName')?.errors?.['maxlength']">Must be under 50 characters.</span>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Contact Email</label>
+              <input formControlName="email" type="email" placeholder="e.g. info&#64;school.com" />
+              <div class="field-error" *ngIf="showError('email')">
+                <span *ngIf="schoolForm.get('email')?.errors?.['email']">Enter a valid email address.</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <div class="phone-input-group">
+                <select formControlName="countryCode" class="country-select">
+                  <option value="">Country</option>
+                  <option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.dial }})</option>
+                </select>
+                <input formControlName="phoneNumber" class="phone-number-input"
+                       [placeholder]="selectedCountry?.phonePlaceholder || 'Phone number'" />
+              </div>
+              <div class="field-error" *ngIf="showError('phoneNumber')">
+                <span *ngIf="schoolForm.get('phoneNumber')?.errors?.['invalidPhone']">
+                  Invalid phone number for {{ selectedCountry?.name || 'selected country' }}.
+                </span>
+              </div>
+              <div class="field-error" *ngIf="schoolForm.get('phoneNumber')?.value && !schoolForm.get('countryCode')?.value">
+                <span>Please select a country first.</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button type="submit" class="btn-primary btn-submit" [disabled]="creating || schoolForm.invalid">
-          {{ creating ? 'Creating...' : 'Create School' }}
-        </button>
-      </form>
+          <!-- Admin Account -->
+          <div class="form-section-title">Admin Account</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Admin Email <span class="required">*</span></label>
+              <input formControlName="adminEmail" type="email" placeholder="e.g. admin&#64;school.com" />
+              <div class="field-error" *ngIf="showError('adminEmail')">
+                <span *ngIf="schoolForm.get('adminEmail')?.errors?.['required']">Admin email is required.</span>
+                <span *ngIf="schoolForm.get('adminEmail')?.errors?.['email']">Enter a valid email address.</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Admin Password <span class="required">*</span></label>
+              <div class="password-wrapper">
+                <input formControlName="adminPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Min 8 chars, uppercase, number, symbol" />
+                <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+                  {{ showPassword ? '🙈' : '👁' }}
+                </button>
+              </div>
+              <div class="password-strength" *ngIf="schoolForm.get('adminPassword')?.value">
+                <div class="strength-bar">
+                  <div class="strength-fill" [style.width.%]="passwordStrength" [class]="passwordStrengthClass"></div>
+                </div>
+                <span class="strength-label" [class]="passwordStrengthClass">{{ passwordStrengthLabel }}</span>
+              </div>
+              <div class="field-error" *ngIf="showError('adminPassword')">
+                <span *ngIf="schoolForm.get('adminPassword')?.errors?.['required']">Password is required.</span>
+                <span *ngIf="schoolForm.get('adminPassword')?.errors?.['minlength']">Must be at least 8 characters.</span>
+                <span *ngIf="schoolForm.get('adminPassword')?.errors?.['passwordStrength']">
+                  {{ schoolForm.get('adminPassword')?.errors?.['passwordStrength'] }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Admin First Name <span class="required">*</span></label>
+              <input formControlName="adminFirstName" placeholder="e.g. Ahmed" />
+              <div class="field-error" *ngIf="showError('adminFirstName')">
+                <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['required']">First name is required.</span>
+                <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['minlength']">Must be at least 2 characters.</span>
+                <span *ngIf="schoolForm.get('adminFirstName')?.errors?.['maxlength']">Must be under 50 characters.</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Admin Last Name <span class="required">*</span></label>
+              <input formControlName="adminLastName" placeholder="e.g. Fahmy" />
+              <div class="field-error" *ngIf="showError('adminLastName')">
+                <span *ngIf="schoolForm.get('adminLastName')?.errors?.['required']">Last name is required.</span>
+                <span *ngIf="schoolForm.get('adminLastName')?.errors?.['minlength']">Must be at least 2 characters.</span>
+                <span *ngIf="schoolForm.get('adminLastName')?.errors?.['maxlength']">Must be under 50 characters.</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-submit" [disabled]="creating || schoolForm.invalid">
+            {{ creating ? 'Creating...' : 'Create School' }}
+          </button>
+        </form>
+      </div>
     </div>
 
     <div class="card">
-      <table class="data-table">
-        <thead><tr><th>School Name</th><th>Subdomain</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let t of tenants">
-            <td>{{ t.name }}</td>
-            <td>{{ t.code }}</td>
-            <td>{{ t.email || '—' }}</td>
-            <td>{{ t.phone || '—' }}</td>
-            <td><span [class]="t.isActive ? 'badge-active' : 'badge-inactive'">{{ t.isActive ? 'Active' : 'Inactive' }}</span></td>
-            <td>
-              <button class="btn-sm btn-danger" (click)="deactivate(t.id)" *ngIf="t.isActive">Deactivate</button>
-              <button class="btn-sm btn-success" (click)="reactivate(t.id)" *ngIf="!t.isActive">Reactivate</button>
-            </td>
-          </tr>
-          <tr *ngIf="tenants.length === 0">
-            <td colspan="6" class="empty-row">No schools found. Click "+ Add School" to create one.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="card-header card-header-rose">
+        <h4 class="card-title">Schools</h4>
+        <p class="card-category">Manage school tenants</p>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead><tr><th>School Name</th><th>Subdomain</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let t of tenants">
+                <td>{{ t.name }}</td>
+                <td>{{ t.code }}</td>
+                <td>{{ t.email || '—' }}</td>
+                <td>{{ t.phone || '—' }}</td>
+                <td><span [class]="t.isActive ? 'badge-active' : 'badge-inactive'">{{ t.isActive ? 'Active' : 'Inactive' }}</span></td>
+                <td>
+                  <button class="btn btn-sm btn-danger" (click)="deactivate(t.id)" *ngIf="t.isActive">Deactivate</button>
+                  <button class="btn btn-sm btn-success" (click)="reactivate(t.id)" *ngIf="!t.isActive">Reactivate</button>
+                </td>
+              </tr>
+              <tr *ngIf="tenants.length === 0">
+                <td colspan="6" class="empty-row">No schools found. Click "+ Add School" to create one.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .btn-primary { padding: 0.5rem 1rem; background: #0f172a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; }
-    .btn-primary:hover:not(:disabled) { background: #1e293b; }
-    .btn-submit { margin-top: 0.5rem; padding: 0.625rem 1.5rem; }
-    .btn-sm { padding: 0.25rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #22c55e; color: white; }
-    .btn-success:hover { background: #16a34a; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .form-card { margin-bottom: 1.5rem; }
-    .form-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 0.75rem; margin-top: 0.5rem; padding-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.875rem; color: #334155; }
-    .required { color: #ef4444; }
-    .form-group input, .form-group select { width: 100%; padding: 0.5rem 0.625rem; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 0.875rem; transition: border-color 0.15s, box-shadow 0.15s; background: white; }
-    .form-group input:focus, .form-group select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .form-group input.ng-invalid.ng-touched, .form-group select.ng-invalid.ng-touched { border-color: #ef4444; }
-    .form-group input.ng-valid.ng-touched { border-color: #22c55e; }
-    .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem; }
-    .field-hint { color: #94a3b8; font-size: 0.75rem; margin-top: 0.25rem; }
-
-    /* Phone input */
-    .phone-input-group { display: flex; gap: 0.5rem; }
-    .country-select { flex: 0 0 45%; min-width: 0; padding: 0.5rem 0.375rem; font-size: 0.8rem; }
-    .phone-number-input { flex: 1; min-width: 0; }
-
-    /* Password */
-    .password-wrapper { position: relative; display: flex; align-items: center; }
-    .password-wrapper input { padding-right: 2.5rem; }
-    .toggle-password { position: absolute; right: 0.5rem; background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0.25rem; line-height: 1; }
-    .password-strength { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem; }
-    .strength-bar { flex: 1; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
-    .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
-    .strength-fill.weak { background: #ef4444; }
-    .strength-fill.fair { background: #f59e0b; }
-    .strength-fill.good { background: #3b82f6; }
-    .strength-fill.strong { background: #22c55e; }
-    .strength-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-    .strength-label.weak { color: #ef4444; }
-    .strength-label.fair { color: #f59e0b; }
-    .strength-label.good { color: #3b82f6; }
-    .strength-label.strong { color: #22c55e; }
-
-    /* Table */
-    .data-table { width: 100%; border-collapse: collapse; }
-    .data-table th, .data-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .data-table th { font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
-    .empty-row { text-align: center; color: #94a3b8; padding: 2rem !important; }
-    .badge-active { background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-    .badge-inactive { background: #fef2f2; color: #991b1b; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.75rem; }
-
-    /* Alerts */
-    .alert { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
-    .alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .alert-icon { font-size: 1.1rem; flex-shrink: 0; }
-    .alert-text { flex: 1; }
-    .alert-close { background: none; border: none; cursor: pointer; font-size: 1rem; color: inherit; padding: 0 0.25rem; opacity: 0.7; }
-    .alert-close:hover { opacity: 1; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-submit { margin-top: 8px; }
   `]
 })
 export class TenantListComponent implements OnInit {
