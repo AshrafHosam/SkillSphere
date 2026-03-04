@@ -65,6 +65,7 @@ public enum FeatureType
     ParentTeacherMessaging = 9
 }
 
+[Flags]
 public enum DayOfWeekFlag
 {
     Sunday = 1,
@@ -107,4 +108,16 @@ public enum WeeklyReportStatus
     Submitted = 1,
     Reviewed = 2,
     Distributed = 3
+}
+
+public enum RoomType
+{
+    Classroom = 0,
+    ScienceLab = 1,
+    ComputerLab = 2,
+    ArtRoom = 3,
+    MusicRoom = 4,
+    Gymnasium = 5,
+    Library = 6,
+    Workshop = 7
 }

@@ -36,9 +36,9 @@
           </a>
         </li>
         <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
-          <a routerLink="/academic/classes">
-            <i class="material-icons">meeting_room</i>
-            <p>Classes</p>
+          <a routerLink="/academic/groups">
+            <i class="material-icons">groups</i>
+            <p>Groups</p>
           </a>
         </li>
         <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
@@ -51,6 +51,36 @@
           <a routerLink="/academic/semesters">
             <i class="material-icons">date_range</i>
             <p>Semesters</p>
+          </a>
+        </li>
+        <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+          <a routerLink="/academic/departments">
+            <i class="material-icons">business</i>
+            <p>Departments</p>
+          </a>
+        </li>
+        <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+          <a routerLink="/rooms">
+            <i class="material-icons">meeting_room</i>
+            <p>Rooms</p>
+          </a>
+        </li>
+        <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+          <a routerLink="/period-definitions">
+            <i class="material-icons">access_time</i>
+            <p>Periods</p>
+          </a>
+        </li>
+        <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+          <a routerLink="/curriculum">
+            <i class="material-icons">auto_stories</i>
+            <p>Curriculum</p>
+          </a>
+        </li>
+        <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">
+          <a routerLink="/teacher-subject-links">
+            <i class="material-icons">link</i>
+            <p>Teacher-Subject Links</p>
           </a>
         </li>
         <li routerLinkActive="active" *ngIf="['SchoolAdmin','SchoolManager'].includes(auth.userRole!)">

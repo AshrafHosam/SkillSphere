@@ -6,6 +6,10 @@ namespace SkillSphere.Domain.Entities;
 public class TimetableVersion : TenantEntity
 {
     public string Name { get; set; } = string.Empty;
+
+    public Guid GroupId { get; set; }
+    public Group Group { get; set; } = null!;
+
     public Guid SemesterId { get; set; }
     public Semester Semester { get; set; } = null!;
 

@@ -8,7 +8,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Teacher,TeacherSupervisor,SchoolManager,SchoolAdmin,Parent")]
 public class GradesController : ControllerBase
 {
     private readonly IGradeRecordService _gradeService;
@@ -29,6 +29,7 @@ public class GradesController : ControllerBase
         => Ok((await _gradeService.GetGradeRecordsAsync(TenantId, studentId, subjectId, semesterId, ct)).Data);
 
     [HttpPost("records")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> CreateRecord([FromQuery] Guid teacherProfileId,
         [FromBody] CreateGradeRecordRequest req, CancellationToken ct)
     {
@@ -37,6 +38,7 @@ public class GradesController : ControllerBase
     }
 
     [HttpDelete("records/{id:guid}")]
+    [Authorize(Roles = "Teacher,SchoolAdmin")]
     public async Task<IActionResult> DeleteRecord(Guid id, CancellationToken ct)
     {
         var r = await _gradeService.DeleteGradeRecordAsync(id, ct);
@@ -49,6 +51,7 @@ public class GradesController : ControllerBase
         => Ok((await _gradeService.GetBehaviorFeedbackAsync(TenantId, studentId, semesterId, ct)).Data);
 
     [HttpPost("behavior")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> CreateBehavior([FromQuery] Guid teacherProfileId,
         [FromBody] CreateBehaviorFeedbackRequest req, CancellationToken ct)
     {

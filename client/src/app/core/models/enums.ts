@@ -42,3 +42,14 @@ export enum TimetableStatus {
   Published = 'Published',
   Archived = 'Archived'
 }
+
+export enum RoomType {
+  Classroom = 'Classroom',
+  ScienceLab = 'ScienceLab',
+  ComputerLab = 'ComputerLab',
+  ArtRoom = 'ArtRoom',
+  MusicRoom = 'MusicRoom',
+  Gymnasium = 'Gymnasium',
+  Library = 'Library',
+  Workshop = 'Workshop'
+}

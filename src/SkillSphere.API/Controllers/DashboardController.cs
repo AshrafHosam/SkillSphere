@@ -31,6 +31,7 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("admin")]
+    [Authorize(Roles = "SchoolAdmin,PlatformSuperAdmin")]
     public async Task<IActionResult> Admin(CancellationToken ct)
     {
         var tenantId = _currentUser.SchoolTenantId;
@@ -43,18 +44,22 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("manager")]
+    [Authorize(Roles = "SchoolManager,SchoolAdmin")]
     public async Task<IActionResult> Manager(CancellationToken ct)
         => Ok((await _dashboardService.GetManagerDashboardAsync(TenantId, ct)).Data);
 
     [HttpGet("teacher/{teacherProfileId:guid}")]
+    [Authorize(Roles = "Teacher,TeacherSupervisor")]
     public async Task<IActionResult> Teacher(Guid teacherProfileId, CancellationToken ct)
         => Ok((await _dashboardService.GetTeacherDashboardAsync(TenantId, teacherProfileId, ct)).Data);
 
     [HttpGet("supervisor/{supervisorProfileId:guid}")]
+    [Authorize(Roles = "TeacherSupervisor")]
     public async Task<IActionResult> Supervisor(Guid supervisorProfileId, CancellationToken ct)
         => Ok((await _dashboardService.GetSupervisorDashboardAsync(TenantId, supervisorProfileId, ct)).Data);
 
     [HttpGet("parent/{parentProfileId:guid}")]
+    [Authorize(Roles = "Parent")]
     public async Task<IActionResult> Parent(Guid parentProfileId, CancellationToken ct)
         => Ok((await _dashboardService.GetParentDashboardAsync(TenantId, parentProfileId, ct)).Data);
 }

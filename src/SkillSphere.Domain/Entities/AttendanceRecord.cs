@@ -14,8 +14,8 @@ public class AttendanceRecord : TenantEntity
     public Guid SubjectId { get; set; }
     public Subject Subject { get; set; } = null!;
 
-    public Guid ClassSectionId { get; set; }
-    public ClassSection ClassSection { get; set; } = null!;
+    public Guid GroupId { get; set; }
+    public Group Group { get; set; } = null!;
 
     public Guid SemesterId { get; set; }
     public Semester Semester { get; set; } = null!;

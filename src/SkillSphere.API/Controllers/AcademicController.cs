@@ -8,7 +8,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "SchoolAdmin,SchoolManager")]
 public class AcademicController : ControllerBase
 {
     private readonly IAcademicService _academicService;
@@ -47,28 +47,28 @@ public class AcademicController : ControllerBase
         return r.IsSuccess ? NoContent() : BadRequest(new { error = r.Error });
     }
 
-    // ---- Class Sections ----
-    [HttpGet("classes")]
-    public async Task<IActionResult> GetClasses([FromQuery] Guid? gradeId, CancellationToken ct) => Ok((await _academicService.GetClassSectionsAsync(TenantId, gradeId, ct)).Data);
+    // ---- Groups (was Class Sections) ----
+    [HttpGet("groups")]
+    public async Task<IActionResult> GetGroups([FromQuery] Guid? gradeId, CancellationToken ct) => Ok((await _academicService.GetGroupsAsync(TenantId, gradeId, ct)).Data);
 
-    [HttpPost("classes")]
-    public async Task<IActionResult> CreateClass([FromBody] CreateClassSectionRequest req, CancellationToken ct)
+    [HttpPost("groups")]
+    public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest req, CancellationToken ct)
     {
-        var r = await _academicService.CreateClassSectionAsync(TenantId, req, ct);
+        var r = await _academicService.CreateGroupAsync(TenantId, req, ct);
         return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
     }
 
-    [HttpPut("classes/{id:guid}")]
-    public async Task<IActionResult> UpdateClass(Guid id, [FromBody] CreateClassSectionRequest req, CancellationToken ct)
+    [HttpPut("groups/{id:guid}")]
+    public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] CreateGroupRequest req, CancellationToken ct)
     {
-        var r = await _academicService.UpdateClassSectionAsync(id, req, ct);
+        var r = await _academicService.UpdateGroupAsync(id, req, ct);
         return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
     }
 
-    [HttpDelete("classes/{id:guid}")]
-    public async Task<IActionResult> DeleteClass(Guid id, CancellationToken ct)
+    [HttpDelete("groups/{id:guid}")]
+    public async Task<IActionResult> DeleteGroup(Guid id, CancellationToken ct)
     {
-        var r = await _academicService.DeleteClassSectionAsync(id, ct);
+        var r = await _academicService.DeleteGroupAsync(id, ct);
         return r.IsSuccess ? NoContent() : BadRequest(new { error = r.Error });
     }
 

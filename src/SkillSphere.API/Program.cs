@@ -121,7 +121,7 @@ app.MapControllers();
 Console.WriteLine("=== SkillSphere API is ready ===");
 app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException)
 {
     Console.WriteLine($"=== FATAL STARTUP ERROR: {ex} ===");
     Environment.Exit(1);

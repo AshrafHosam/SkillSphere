@@ -1,8 +1,10 @@
-import { TimetableStatus } from './enums';
+import { RoomType, TimetableStatus } from './enums';
 
 export interface TimetableVersionDto {
   id: string;
   name: string;
+  groupId: string;
+  groupName: string;
   semesterId: string;
   semesterName: string;
   versionNumber: number;
@@ -14,39 +16,38 @@ export interface TimetableVersionDto {
 export interface TimetableEntryDto {
   id: string;
   timetableVersionId: string;
-  teacherProfileId: string;
-  teacherName: string;
   subjectId: string;
   subjectName: string;
-  classSectionId: string;
-  classSectionName: string;
-  gradeId: string;
-  gradeName: string;
+  teacherProfileId: string;
+  teacherName: string;
+  roomId: string;
+  roomName: string;
+  roomType: RoomType;
   dayOfWeek: number;
+  periodDefinitionId: string;
+  periodNumber: number;
+  periodLabel: string;
   startTime: string;
   endTime: string;
-  room?: string;
 }
 
 export interface CreateTimetableVersionRequest {
-  name: string;
+  groupId: string;
   semesterId: string;
+  name: string;
 }
 
-export interface CreateTimetableEntryRequest {
+export interface AddTimetableEntryRequest {
   timetableVersionId: string;
-  teacherProfileId: string;
   subjectId: string;
-  classSectionId: string;
-  gradeId: string;
+  teacherProfileId: string;
+  roomId: string;
   dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  room?: string;
+  periodDefinitionId: string;
 }
 
-export interface TimetableConflictDto {
-  conflictType: string;
-  description: string;
-  existingEntry: TimetableEntryDto;
+export interface TimetableValidationError {
+  rule: string;
+  severity: string;
+  message: string;
 }

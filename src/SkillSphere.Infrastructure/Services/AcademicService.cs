@@ -16,9 +16,9 @@ public class AcademicService : IAcademicService
     public async Task<Result<List<GradeDto>>> GetGradesAsync(Guid tenantId, CancellationToken ct = default)
     {
         var grades = await _db.Grades.Where(g => g.SchoolTenantId == tenantId)
-            .Include(g => g.ClassSections)
+            .Include(g => g.Groups)
             .OrderBy(g => g.OrderIndex)
-            .Select(g => new GradeDto { Id = g.Id, Name = g.Name, OrderIndex = g.OrderIndex, IsActive = g.IsActive, ClassCount = g.ClassSections.Count })
+            .Select(g => new GradeDto { Id = g.Id, Name = g.Name, OrderIndex = g.OrderIndex, IsActive = g.IsActive, GroupCount = g.Groups.Count })
             .ToListAsync(ct);
         return Result<List<GradeDto>>.Success(grades);
     }
@@ -50,44 +50,44 @@ public class AcademicService : IAcademicService
         return Result.Success();
     }
 
-    // --- Class Sections ---
-    public async Task<Result<List<ClassSectionDto>>> GetClassSectionsAsync(Guid tenantId, Guid? gradeId = null, CancellationToken ct = default)
+    // --- Groups (was Class Sections) ---
+    public async Task<Result<List<GroupDto>>> GetGroupsAsync(Guid tenantId, Guid? gradeId = null, CancellationToken ct = default)
     {
-        var query = _db.ClassSections.Include(c => c.Grade).Where(c => c.SchoolTenantId == tenantId);
+        var query = _db.Groups.Include(c => c.Grade).Where(c => c.SchoolTenantId == tenantId);
         if (gradeId.HasValue) query = query.Where(c => c.GradeId == gradeId.Value);
 
         var items = await query.OrderBy(c => c.Grade.OrderIndex).ThenBy(c => c.Name)
-            .Select(c => new ClassSectionDto
+            .Select(c => new GroupDto
             {
                 Id = c.Id, Name = c.Name, GradeId = c.GradeId, GradeName = c.Grade.Name,
                 Capacity = c.Capacity, IsActive = c.IsActive, StudentCount = c.StudentAssignments.Count(sa => sa.IsActive)
             }).ToListAsync(ct);
-        return Result<List<ClassSectionDto>>.Success(items);
+        return Result<List<GroupDto>>.Success(items);
     }
 
-    public async Task<Result<ClassSectionDto>> CreateClassSectionAsync(Guid tenantId, CreateClassSectionRequest request, CancellationToken ct = default)
+    public async Task<Result<GroupDto>> CreateGroupAsync(Guid tenantId, CreateGroupRequest request, CancellationToken ct = default)
     {
-        var cs = new ClassSection { Name = request.Name, GradeId = request.GradeId, Capacity = request.Capacity, SchoolTenantId = tenantId };
-        await _db.ClassSections.AddAsync(cs, ct);
+        var group = new Group { Name = request.Name, GradeId = request.GradeId, Capacity = request.Capacity, SchoolTenantId = tenantId };
+        await _db.Groups.AddAsync(group, ct);
         await _db.SaveChangesAsync(ct);
         var grade = await _db.Grades.FindAsync([request.GradeId], ct);
-        return Result<ClassSectionDto>.Success(new ClassSectionDto { Id = cs.Id, Name = cs.Name, GradeId = cs.GradeId, GradeName = grade?.Name ?? "", Capacity = cs.Capacity, IsActive = true });
+        return Result<GroupDto>.Success(new GroupDto { Id = group.Id, Name = group.Name, GradeId = group.GradeId, GradeName = grade?.Name ?? "", Capacity = group.Capacity, IsActive = true });
     }
 
-    public async Task<Result<ClassSectionDto>> UpdateClassSectionAsync(Guid id, CreateClassSectionRequest request, CancellationToken ct = default)
+    public async Task<Result<GroupDto>> UpdateGroupAsync(Guid id, CreateGroupRequest request, CancellationToken ct = default)
     {
-        var cs = await _db.ClassSections.Include(c => c.Grade).FirstOrDefaultAsync(c => c.Id == id, ct);
-        if (cs == null) return Result<ClassSectionDto>.Failure("Class not found.");
-        cs.Name = request.Name; cs.GradeId = request.GradeId; cs.Capacity = request.Capacity;
+        var group = await _db.Groups.Include(c => c.Grade).FirstOrDefaultAsync(c => c.Id == id, ct);
+        if (group == null) return Result<GroupDto>.Failure("Group not found.");
+        group.Name = request.Name; group.GradeId = request.GradeId; group.Capacity = request.Capacity;
         await _db.SaveChangesAsync(ct);
-        return Result<ClassSectionDto>.Success(new ClassSectionDto { Id = cs.Id, Name = cs.Name, GradeId = cs.GradeId, GradeName = cs.Grade.Name, Capacity = cs.Capacity, IsActive = cs.IsActive });
+        return Result<GroupDto>.Success(new GroupDto { Id = group.Id, Name = group.Name, GradeId = group.GradeId, GradeName = group.Grade.Name, Capacity = group.Capacity, IsActive = group.IsActive });
     }
 
-    public async Task<Result> DeleteClassSectionAsync(Guid id, CancellationToken ct = default)
+    public async Task<Result> DeleteGroupAsync(Guid id, CancellationToken ct = default)
     {
-        var cs = await _db.ClassSections.FindAsync([id], ct);
-        if (cs == null) return Result.Failure("Class not found.");
-        cs.IsDeleted = true;
+        var group = await _db.Groups.FindAsync([id], ct);
+        if (group == null) return Result.Failure("Group not found.");
+        group.IsDeleted = true;
         await _db.SaveChangesAsync(ct);
         return Result.Success();
     }
@@ -97,26 +97,26 @@ public class AcademicService : IAcademicService
     {
         var items = await _db.Subjects.Include(s => s.Department).Where(s => s.SchoolTenantId == tenantId)
             .OrderBy(s => s.Name)
-            .Select(s => new SubjectDto { Id = s.Id, Name = s.Name, Code = s.Code, DepartmentId = s.DepartmentId, DepartmentName = s.Department != null ? s.Department.Name : null, IsActive = s.IsActive })
+            .Select(s => new SubjectDto { Id = s.Id, Name = s.Name, Code = s.Code, DepartmentId = s.DepartmentId, DepartmentName = s.Department != null ? s.Department.Name : null, RequiredRoomType = s.RequiredRoomType, IsActive = s.IsActive })
             .ToListAsync(ct);
         return Result<List<SubjectDto>>.Success(items);
     }
 
     public async Task<Result<SubjectDto>> CreateSubjectAsync(Guid tenantId, CreateSubjectRequest request, CancellationToken ct = default)
     {
-        var subj = new Subject { Name = request.Name, Code = request.Code, DepartmentId = request.DepartmentId, SchoolTenantId = tenantId };
+        var subj = new Subject { Name = request.Name, Code = request.Code, DepartmentId = request.DepartmentId, RequiredRoomType = request.RequiredRoomType, SchoolTenantId = tenantId };
         await _db.Subjects.AddAsync(subj, ct);
         await _db.SaveChangesAsync(ct);
-        return Result<SubjectDto>.Success(new SubjectDto { Id = subj.Id, Name = subj.Name, Code = subj.Code, DepartmentId = subj.DepartmentId, IsActive = true });
+        return Result<SubjectDto>.Success(new SubjectDto { Id = subj.Id, Name = subj.Name, Code = subj.Code, DepartmentId = subj.DepartmentId, RequiredRoomType = subj.RequiredRoomType, IsActive = true });
     }
 
     public async Task<Result<SubjectDto>> UpdateSubjectAsync(Guid id, CreateSubjectRequest request, CancellationToken ct = default)
     {
         var subj = await _db.Subjects.FindAsync([id], ct);
         if (subj == null) return Result<SubjectDto>.Failure("Subject not found.");
-        subj.Name = request.Name; subj.Code = request.Code; subj.DepartmentId = request.DepartmentId;
+        subj.Name = request.Name; subj.Code = request.Code; subj.DepartmentId = request.DepartmentId; subj.RequiredRoomType = request.RequiredRoomType;
         await _db.SaveChangesAsync(ct);
-        return Result<SubjectDto>.Success(new SubjectDto { Id = subj.Id, Name = subj.Name, Code = subj.Code, DepartmentId = subj.DepartmentId, IsActive = subj.IsActive });
+        return Result<SubjectDto>.Success(new SubjectDto { Id = subj.Id, Name = subj.Name, Code = subj.Code, DepartmentId = subj.DepartmentId, RequiredRoomType = subj.RequiredRoomType, IsActive = subj.IsActive });
     }
 
     public async Task<Result> DeleteSubjectAsync(Guid id, CancellationToken ct = default)

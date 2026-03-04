@@ -69,29 +69,29 @@ public static class DatabaseSeeder
         // 4. SUBJECTS
         // ───────────────────────────────────────────────
         var subMath = new Subject { SchoolTenantId = school.Id, Name = "Mathematics", Code = "MATH", DepartmentId = deptMath.Id };
-        var subPhysics = new Subject { SchoolTenantId = school.Id, Name = "Physics", Code = "PHY", DepartmentId = deptScience.Id };
-        var subChemistry = new Subject { SchoolTenantId = school.Id, Name = "Chemistry", Code = "CHEM", DepartmentId = deptScience.Id };
-        var subBiology = new Subject { SchoolTenantId = school.Id, Name = "Biology", Code = "BIO", DepartmentId = deptScience.Id };
+        var subPhysics = new Subject { SchoolTenantId = school.Id, Name = "Physics", Code = "PHY", DepartmentId = deptScience.Id, RequiredRoomType = RoomType.ScienceLab };
+        var subChemistry = new Subject { SchoolTenantId = school.Id, Name = "Chemistry", Code = "CHEM", DepartmentId = deptScience.Id, RequiredRoomType = RoomType.ScienceLab };
+        var subBiology = new Subject { SchoolTenantId = school.Id, Name = "Biology", Code = "BIO", DepartmentId = deptScience.Id, RequiredRoomType = RoomType.ScienceLab };
         var subArabic = new Subject { SchoolTenantId = school.Id, Name = "Arabic", Code = "AR", DepartmentId = deptLang.Id };
         var subEnglish = new Subject { SchoolTenantId = school.Id, Name = "English", Code = "ENG", DepartmentId = deptLang.Id };
         var subQuran = new Subject { SchoolTenantId = school.Id, Name = "Quran Studies", Code = "QRN", DepartmentId = deptIS.Id };
-        var subCS = new Subject { SchoolTenantId = school.Id, Name = "Computer Science", Code = "CS", DepartmentId = null };
+        var subCS = new Subject { SchoolTenantId = school.Id, Name = "Computer Science", Code = "CS", DepartmentId = null, RequiredRoomType = RoomType.ComputerLab };
         db.Subjects.AddRange(subMath, subPhysics, subChemistry, subBiology, subArabic, subEnglish, subQuran, subCS);
 
         // ───────────────────────────────────────────────
-        // 5. GRADES & CLASS SECTIONS
+        // 5. GRADES & GROUPS (was CLASS SECTIONS)
         // ───────────────────────────────────────────────
         var grade9 = new Grade { SchoolTenantId = school.Id, Name = "Grade 9", OrderIndex = 9 };
         var grade10 = new Grade { SchoolTenantId = school.Id, Name = "Grade 10", OrderIndex = 10 };
         var grade11 = new Grade { SchoolTenantId = school.Id, Name = "Grade 11", OrderIndex = 11 };
         db.Grades.AddRange(grade9, grade10, grade11);
 
-        var cls9A = new ClassSection { SchoolTenantId = school.Id, Name = "9-A", GradeId = grade9.Id, Capacity = 30 };
-        var cls9B = new ClassSection { SchoolTenantId = school.Id, Name = "9-B", GradeId = grade9.Id, Capacity = 30 };
-        var cls10A = new ClassSection { SchoolTenantId = school.Id, Name = "10-A", GradeId = grade10.Id, Capacity = 28 };
-        var cls10B = new ClassSection { SchoolTenantId = school.Id, Name = "10-B", GradeId = grade10.Id, Capacity = 28 };
-        var cls11A = new ClassSection { SchoolTenantId = school.Id, Name = "11-A", GradeId = grade11.Id, Capacity = 25 };
-        db.ClassSections.AddRange(cls9A, cls9B, cls10A, cls10B, cls11A);
+        var grp9A = new Group { SchoolTenantId = school.Id, Name = "9-A", GradeId = grade9.Id, Capacity = 30 };
+        var grp9B = new Group { SchoolTenantId = school.Id, Name = "9-B", GradeId = grade9.Id, Capacity = 30 };
+        var grp10A = new Group { SchoolTenantId = school.Id, Name = "10-A", GradeId = grade10.Id, Capacity = 28 };
+        var grp10B = new Group { SchoolTenantId = school.Id, Name = "10-B", GradeId = grade10.Id, Capacity = 28 };
+        var grp11A = new Group { SchoolTenantId = school.Id, Name = "11-A", GradeId = grade11.Id, Capacity = 25 };
+        db.Groups.AddRange(grp9A, grp9B, grp10A, grp10B, grp11A);
 
         // ───────────────────────────────────────────────
         // 6. SEMESTERS
@@ -304,115 +304,183 @@ public static class DatabaseSeeder
         );
 
         // ───────────────────────────────────────────────
-        // 14. TEACHER ASSIGNMENTS (who teaches what)
+        // 14. ROOMS
         // ───────────────────────────────────────────────
-        // Ahmed → Math for 9A, 9B, 10A
-        db.TeacherAssignments.AddRange(
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpAhmed.Id, SubjectId = subMath.Id, ClassSectionId = cls9A.Id, GradeId = grade9.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpAhmed.Id, SubjectId = subMath.Id, ClassSectionId = cls9B.Id, GradeId = grade9.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpAhmed.Id, SubjectId = subMath.Id, ClassSectionId = cls10A.Id, GradeId = grade10.Id, SemesterId = sem1.Id }
-        );
-        // Fatima → Physics for 10A, 10B; Chemistry for 11A
-        db.TeacherAssignments.AddRange(
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subPhysics.Id, ClassSectionId = cls10A.Id, GradeId = grade10.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subPhysics.Id, ClassSectionId = cls10B.Id, GradeId = grade10.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subChemistry.Id, ClassSectionId = cls11A.Id, GradeId = grade11.Id, SemesterId = sem1.Id }
-        );
-        // Omar → Arabic for 9A, 9B; Quran for 10A
-        db.TeacherAssignments.AddRange(
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpOmar.Id, SubjectId = subArabic.Id, ClassSectionId = cls9A.Id, GradeId = grade9.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpOmar.Id, SubjectId = subArabic.Id, ClassSectionId = cls9B.Id, GradeId = grade9.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpOmar.Id, SubjectId = subQuran.Id, ClassSectionId = cls10A.Id, GradeId = grade10.Id, SemesterId = sem1.Id }
-        );
-        // Noor → English for 9A, 10A; CS for 11A
-        db.TeacherAssignments.AddRange(
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpNoor.Id, SubjectId = subEnglish.Id, ClassSectionId = cls9A.Id, GradeId = grade9.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpNoor.Id, SubjectId = subEnglish.Id, ClassSectionId = cls10A.Id, GradeId = grade10.Id, SemesterId = sem1.Id },
-            new TeacherAssignment { SchoolTenantId = school.Id, TeacherProfileId = tpNoor.Id, SubjectId = subCS.Id, ClassSectionId = cls11A.Id, GradeId = grade11.Id, SemesterId = sem1.Id }
+        var room101 = new Room { SchoolTenantId = school.Id, Name = "Room 101", Code = "R101", RoomType = RoomType.Classroom, Capacity = 35, Building = "Main", Floor = 1 };
+        var room102 = new Room { SchoolTenantId = school.Id, Name = "Room 102", Code = "R102", RoomType = RoomType.Classroom, Capacity = 35, Building = "Main", Floor = 1 };
+        var room103 = new Room { SchoolTenantId = school.Id, Name = "Room 103", Code = "R103", RoomType = RoomType.Classroom, Capacity = 35, Building = "Main", Floor = 1 };
+        var room201 = new Room { SchoolTenantId = school.Id, Name = "Room 201", Code = "R201", RoomType = RoomType.Classroom, Capacity = 30, Building = "Main", Floor = 2 };
+        var room202 = new Room { SchoolTenantId = school.Id, Name = "Room 202", Code = "R202", RoomType = RoomType.Classroom, Capacity = 30, Building = "Main", Floor = 2 };
+        var lab1 = new Room { SchoolTenantId = school.Id, Name = "Science Lab 1", Code = "LAB1", RoomType = RoomType.ScienceLab, Capacity = 25, Building = "Science", Floor = 1 };
+        var lab2 = new Room { SchoolTenantId = school.Id, Name = "Science Lab 2", Code = "LAB2", RoomType = RoomType.ScienceLab, Capacity = 25, Building = "Science", Floor = 1 };
+        var itLab = new Room { SchoolTenantId = school.Id, Name = "IT Lab", Code = "ITLAB", RoomType = RoomType.ComputerLab, Capacity = 30, Building = "Tech", Floor = 1 };
+        var artRoom = new Room { SchoolTenantId = school.Id, Name = "Art Room", Code = "ART1", RoomType = RoomType.ArtRoom, Capacity = 25, Building = "Main", Floor = 1 };
+        var gym = new Room { SchoolTenantId = school.Id, Name = "Gymnasium", Code = "GYM1", RoomType = RoomType.Gymnasium, Capacity = 60, Building = "Sports", Floor = 1 };
+        db.Rooms.AddRange(room101, room102, room103, room201, room202, lab1, lab2, itLab, artRoom, gym);
+
+        // ───────────────────────────────────────────────
+        // 14b. PERIOD DEFINITIONS
+        // ───────────────────────────────────────────────
+        var p1 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 1, Label = "Period 1", StartTime = new TimeSpan(7, 30, 0), EndTime = new TimeSpan(8, 15, 0) };
+        var p2 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 2, Label = "Period 2", StartTime = new TimeSpan(8, 20, 0), EndTime = new TimeSpan(9, 5, 0) };
+        var pBreak1 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 3, Label = "Break", StartTime = new TimeSpan(9, 5, 0), EndTime = new TimeSpan(9, 25, 0), IsBreak = true };
+        var p3 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 4, Label = "Period 3", StartTime = new TimeSpan(9, 25, 0), EndTime = new TimeSpan(10, 10, 0) };
+        var p4 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 5, Label = "Period 4", StartTime = new TimeSpan(10, 15, 0), EndTime = new TimeSpan(11, 0, 0) };
+        var p5 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 6, Label = "Period 5", StartTime = new TimeSpan(11, 5, 0), EndTime = new TimeSpan(11, 50, 0) };
+        var pBreak2 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 7, Label = "Break", StartTime = new TimeSpan(11, 50, 0), EndTime = new TimeSpan(12, 20, 0), IsBreak = true };
+        var p6 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 8, Label = "Period 6", StartTime = new TimeSpan(12, 20, 0), EndTime = new TimeSpan(13, 5, 0) };
+        var p7 = new PeriodDefinition { SchoolTenantId = school.Id, PeriodNumber = 9, Label = "Period 7", StartTime = new TimeSpan(13, 10, 0), EndTime = new TimeSpan(13, 55, 0) };
+        db.PeriodDefinitions.AddRange(p1, p2, pBreak1, p3, p4, p5, pBreak2, p6, p7);
+
+        // ───────────────────────────────────────────────
+        // 14c. TEACHER SUBJECT LINKS (who can teach what)
+        // ───────────────────────────────────────────────
+        db.TeacherSubjectLinks.AddRange(
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpAhmed.Id, SubjectId = subMath.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subPhysics.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subChemistry.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpFatima.Id, SubjectId = subBiology.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpOmar.Id, SubjectId = subArabic.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpOmar.Id, SubjectId = subQuran.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpNoor.Id, SubjectId = subEnglish.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpNoor.Id, SubjectId = subCS.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpSupervisor.Id, SubjectId = subPhysics.Id, IsActive = true },
+            new TeacherSubjectLink { SchoolTenantId = school.Id, TeacherProfileId = tpSupervisor.Id, SubjectId = subBiology.Id, IsActive = true }
         );
 
         // ───────────────────────────────────────────────
-        // 15. STUDENT ASSIGNMENTS (who is in which class)
+        // 14d. CURRICULUM CONTRACTS
+        // ───────────────────────────────────────────────
+        db.CurriculumContracts.AddRange(
+            // Grade 9, Semester 1: Math 5, Arabic 4, English 4, Physics 3, Biology 2, Quran 2, CS 2
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subMath.Id, PeriodsPerWeek = 5 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subArabic.Id, PeriodsPerWeek = 4 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subEnglish.Id, PeriodsPerWeek = 4 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subPhysics.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subBiology.Id, PeriodsPerWeek = 2 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade9.Id, SemesterId = sem1.Id, SubjectId = subQuran.Id, PeriodsPerWeek = 2 },
+            // Grade 10, Semester 1: Math 5, Physics 4, Arabic 3, Quran 2, English 3, Chemistry 3, CS 2
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subMath.Id, PeriodsPerWeek = 5 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subPhysics.Id, PeriodsPerWeek = 4 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subArabic.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subQuran.Id, PeriodsPerWeek = 2 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subEnglish.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subChemistry.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade10.Id, SemesterId = sem1.Id, SubjectId = subCS.Id, PeriodsPerWeek = 2 },
+            // Grade 11, Semester 1: Math 5, Chemistry 4, CS 3, English 3, Arabic 3, Physics 3, Biology 2, Quran 2
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subMath.Id, PeriodsPerWeek = 5 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subChemistry.Id, PeriodsPerWeek = 4 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subCS.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subEnglish.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subArabic.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subPhysics.Id, PeriodsPerWeek = 3 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subBiology.Id, PeriodsPerWeek = 2 },
+            new CurriculumContract { SchoolTenantId = school.Id, GradeId = grade11.Id, SemesterId = sem1.Id, SubjectId = subQuran.Id, PeriodsPerWeek = 2 }
+        );
+
+        // ───────────────────────────────────────────────
+        // 15. STUDENT ASSIGNMENTS (who is in which group)
         // ───────────────────────────────────────────────
         // Ali + Layla → 9A; Sami → 9B
         db.StudentAssignments.AddRange(
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp1.Id, GradeId = grade9.Id, ClassSectionId = cls9A.Id, SemesterId = sem1.Id },
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp2.Id, GradeId = grade9.Id, ClassSectionId = cls9A.Id, SemesterId = sem1.Id },
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp3.Id, GradeId = grade9.Id, ClassSectionId = cls9B.Id, SemesterId = sem1.Id }
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp1.Id, GradeId = grade9.Id, GroupId = grp9A.Id, SemesterId = sem1.Id },
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp2.Id, GradeId = grade9.Id, GroupId = grp9A.Id, SemesterId = sem1.Id },
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp3.Id, GradeId = grade9.Id, GroupId = grp9B.Id, SemesterId = sem1.Id }
         );
         // Reem → 10A; Mohammed → 10B
         db.StudentAssignments.AddRange(
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp4.Id, GradeId = grade10.Id, ClassSectionId = cls10A.Id, SemesterId = sem1.Id },
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp5.Id, GradeId = grade10.Id, ClassSectionId = cls10B.Id, SemesterId = sem1.Id }
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp4.Id, GradeId = grade10.Id, GroupId = grp10A.Id, SemesterId = sem1.Id },
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp5.Id, GradeId = grade10.Id, GroupId = grp10B.Id, SemesterId = sem1.Id }
         );
         // Hana → 11A
         db.StudentAssignments.Add(
-            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp6.Id, GradeId = grade11.Id, ClassSectionId = cls11A.Id, SemesterId = sem1.Id }
+            new StudentAssignment { SchoolTenantId = school.Id, StudentProfileId = sp6.Id, GradeId = grade11.Id, GroupId = grp11A.Id, SemesterId = sem1.Id }
         );
 
         // ───────────────────────────────────────────────
-        // 16. TIMETABLE
+        // 16. TIMETABLE (Group-scoped, with Room & PeriodDefinition FKs)
         // ───────────────────────────────────────────────
-        var ttVersion = new TimetableVersion
-        {
-            SchoolTenantId = school.Id,
-            Name = "Term 1 - Main Schedule",
-            SemesterId = sem1.Id,
-            VersionNumber = 1,
-            Status = TimetableStatus.Published,
-            PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc),
-            PublishedBy = schoolAdmin.Email
-        };
-        db.TimetableVersions.Add(ttVersion);
+        // One published version per group
+        var tt9A = new TimetableVersion { SchoolTenantId = school.Id, Name = "Term 1 — 9-A", SemesterId = sem1.Id, GroupId = grp9A.Id, VersionNumber = 1, Status = TimetableStatus.Published, PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc), PublishedBy = schoolAdmin.Email };
+        var tt9B = new TimetableVersion { SchoolTenantId = school.Id, Name = "Term 1 — 9-B", SemesterId = sem1.Id, GroupId = grp9B.Id, VersionNumber = 1, Status = TimetableStatus.Published, PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc), PublishedBy = schoolAdmin.Email };
+        var tt10A = new TimetableVersion { SchoolTenantId = school.Id, Name = "Term 1 — 10-A", SemesterId = sem1.Id, GroupId = grp10A.Id, VersionNumber = 1, Status = TimetableStatus.Published, PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc), PublishedBy = schoolAdmin.Email };
+        var tt10B = new TimetableVersion { SchoolTenantId = school.Id, Name = "Term 1 — 10-B", SemesterId = sem1.Id, GroupId = grp10B.Id, VersionNumber = 1, Status = TimetableStatus.Published, PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc), PublishedBy = schoolAdmin.Email };
+        var tt11A = new TimetableVersion { SchoolTenantId = school.Id, Name = "Term 1 — 11-A", SemesterId = sem1.Id, GroupId = grp11A.Id, VersionNumber = 1, Status = TimetableStatus.Published, PublishedAt = new DateTime(2025, 8, 28, 0, 0, 0, DateTimeKind.Utc), PublishedBy = schoolAdmin.Email };
+        db.TimetableVersions.AddRange(tt9A, tt9B, tt10A, tt10B, tt11A);
 
-        // Timetable entries — a realistic weekly schedule
-        void AddEntry(TeacherProfile tp, Subject sub, ClassSection cls, Grade gr, DayOfWeek day, int startHour, int startMin, string room)
+        // Helper to add entries using Room + PeriodDefinition FKs
+        void AddEntry(TimetableVersion ver, TeacherProfile tp, Subject sub, DayOfWeek day, PeriodDefinition period, Room room)
         {
             db.TimetableEntries.Add(new TimetableEntry
             {
                 SchoolTenantId = school.Id,
-                TimetableVersionId = ttVersion.Id,
+                TimetableVersionId = ver.Id,
                 TeacherProfileId = tp.Id,
                 SubjectId = sub.Id,
-                ClassSectionId = cls.Id,
-                GradeId = gr.Id,
                 DayOfWeek = day,
-                StartTime = new TimeSpan(startHour, startMin, 0),
-                EndTime = new TimeSpan(startHour, startMin + 45, 0),
-                Room = room
+                PeriodDefinitionId = period.Id,
+                RoomId = room.Id
             });
         }
 
         // Sunday schedule
-        AddEntry(tpAhmed, subMath, cls9A, grade9, DayOfWeek.Sunday, 8, 0, "Room 101");
-        AddEntry(tpFatima, subPhysics, cls10A, grade10, DayOfWeek.Sunday, 8, 0, "Lab 1");
-        AddEntry(tpOmar, subArabic, cls9B, grade9, DayOfWeek.Sunday, 8, 0, "Room 103");
-        AddEntry(tpNoor, subEnglish, cls9A, grade9, DayOfWeek.Sunday, 9, 0, "Room 101");
-        AddEntry(tpAhmed, subMath, cls10A, grade10, DayOfWeek.Sunday, 9, 0, "Room 202");
-        AddEntry(tpFatima, subChemistry, cls11A, grade11, DayOfWeek.Sunday, 9, 0, "Lab 2");
-        AddEntry(tpNoor, subCS, cls11A, grade11, DayOfWeek.Sunday, 10, 0, "IT Lab");
-        AddEntry(tpOmar, subQuran, cls10A, grade10, DayOfWeek.Sunday, 10, 0, "Room 204");
+        AddEntry(tt9A, tpAhmed, subMath, DayOfWeek.Sunday, p1, room101);
+        AddEntry(tt10A, tpFatima, subPhysics, DayOfWeek.Sunday, p1, lab1);
+        AddEntry(tt9B, tpOmar, subArabic, DayOfWeek.Sunday, p1, room103);
+        AddEntry(tt9A, tpNoor, subEnglish, DayOfWeek.Sunday, p2, room101);
+        AddEntry(tt10A, tpAhmed, subMath, DayOfWeek.Sunday, p2, room202);
+        AddEntry(tt11A, tpFatima, subChemistry, DayOfWeek.Sunday, p2, lab2);
+        AddEntry(tt11A, tpNoor, subCS, DayOfWeek.Sunday, p3, itLab);
+        AddEntry(tt10A, tpOmar, subQuran, DayOfWeek.Sunday, p3, room201);
+        AddEntry(tt9A, tpOmar, subArabic, DayOfWeek.Sunday, p4, room101);
+        AddEntry(tt10A, tpNoor, subEnglish, DayOfWeek.Sunday, p4, room202);
+        AddEntry(tt11A, tpAhmed, subMath, DayOfWeek.Sunday, p5, room201);
+        AddEntry(tt9B, tpFatima, subPhysics, DayOfWeek.Sunday, p5, lab1);
 
         // Monday schedule
-        AddEntry(tpAhmed, subMath, cls9B, grade9, DayOfWeek.Monday, 8, 0, "Room 102");
-        AddEntry(tpFatima, subPhysics, cls10B, grade10, DayOfWeek.Monday, 8, 0, "Lab 1");
-        AddEntry(tpNoor, subEnglish, cls10A, grade10, DayOfWeek.Monday, 8, 0, "Room 201");
-        AddEntry(tpOmar, subArabic, cls9A, grade9, DayOfWeek.Monday, 9, 0, "Room 101");
-        AddEntry(tpAhmed, subMath, cls9A, grade9, DayOfWeek.Monday, 10, 0, "Room 101");
-        AddEntry(tpFatima, subPhysics, cls10A, grade10, DayOfWeek.Monday, 10, 0, "Lab 1");
+        AddEntry(tt9B, tpAhmed, subMath, DayOfWeek.Monday, p1, room102);
+        AddEntry(tt10B, tpFatima, subPhysics, DayOfWeek.Monday, p1, lab1);
+        AddEntry(tt10A, tpNoor, subEnglish, DayOfWeek.Monday, p1, room201);
+        AddEntry(tt9A, tpOmar, subArabic, DayOfWeek.Monday, p2, room101);
+        AddEntry(tt11A, tpFatima, subChemistry, DayOfWeek.Monday, p2, lab2);
+        AddEntry(tt9A, tpAhmed, subMath, DayOfWeek.Monday, p3, room101);
+        AddEntry(tt10A, tpFatima, subPhysics, DayOfWeek.Monday, p3, lab1);
+        AddEntry(tt11A, tpOmar, subArabic, DayOfWeek.Monday, p4, room201);
+        AddEntry(tt10A, tpAhmed, subMath, DayOfWeek.Monday, p5, room202);
+        AddEntry(tt9A, tpNoor, subEnglish, DayOfWeek.Monday, p6, room101);
+        AddEntry(tt11A, tpNoor, subCS, DayOfWeek.Monday, p6, itLab);
 
         // Tuesday schedule
-        AddEntry(tpNoor, subEnglish, cls9A, grade9, DayOfWeek.Tuesday, 8, 0, "Room 101");
-        AddEntry(tpOmar, subQuran, cls10A, grade10, DayOfWeek.Tuesday, 8, 0, "Room 204");
-        AddEntry(tpAhmed, subMath, cls10A, grade10, DayOfWeek.Tuesday, 9, 0, "Room 202");
-        AddEntry(tpFatima, subChemistry, cls11A, grade11, DayOfWeek.Tuesday, 9, 0, "Lab 2");
-        AddEntry(tpNoor, subCS, cls11A, grade11, DayOfWeek.Tuesday, 10, 0, "IT Lab");
+        AddEntry(tt9A, tpNoor, subEnglish, DayOfWeek.Tuesday, p1, room101);
+        AddEntry(tt10A, tpOmar, subQuran, DayOfWeek.Tuesday, p1, room201);
+        AddEntry(tt10A, tpAhmed, subMath, DayOfWeek.Tuesday, p2, room202);
+        AddEntry(tt11A, tpFatima, subChemistry, DayOfWeek.Tuesday, p2, lab2);
+        AddEntry(tt11A, tpNoor, subCS, DayOfWeek.Tuesday, p3, itLab);
+        AddEntry(tt9A, tpAhmed, subMath, DayOfWeek.Tuesday, p4, room101);
+        AddEntry(tt9B, tpOmar, subArabic, DayOfWeek.Tuesday, p4, room103);
+        AddEntry(tt10B, tpFatima, subPhysics, DayOfWeek.Tuesday, p5, lab1);
+        AddEntry(tt11A, tpOmar, subQuran, DayOfWeek.Tuesday, p6, room201);
 
         // Wednesday schedule
-        AddEntry(tpAhmed, subMath, cls9A, grade9, DayOfWeek.Wednesday, 8, 0, "Room 101");
-        AddEntry(tpOmar, subArabic, cls9B, grade9, DayOfWeek.Wednesday, 8, 0, "Room 103");
-        AddEntry(tpFatima, subPhysics, cls10B, grade10, DayOfWeek.Wednesday, 9, 0, "Lab 1");
-        AddEntry(tpNoor, subEnglish, cls10A, grade10, DayOfWeek.Wednesday, 9, 0, "Room 201");
+        AddEntry(tt9A, tpAhmed, subMath, DayOfWeek.Wednesday, p1, room101);
+        AddEntry(tt9B, tpOmar, subArabic, DayOfWeek.Wednesday, p1, room103);
+        AddEntry(tt10B, tpFatima, subPhysics, DayOfWeek.Wednesday, p2, lab1);
+        AddEntry(tt10A, tpNoor, subEnglish, DayOfWeek.Wednesday, p2, room201);
+        AddEntry(tt11A, tpAhmed, subMath, DayOfWeek.Wednesday, p3, room201);
+        AddEntry(tt9A, tpFatima, subPhysics, DayOfWeek.Wednesday, p4, lab1);
+        AddEntry(tt10A, tpOmar, subArabic, DayOfWeek.Wednesday, p5, room201);
+        AddEntry(tt11A, tpNoor, subEnglish, DayOfWeek.Wednesday, p6, room202);
+
+        // Thursday schedule
+        AddEntry(tt9A, tpOmar, subQuran, DayOfWeek.Thursday, p1, room101);
+        AddEntry(tt10A, tpAhmed, subMath, DayOfWeek.Thursday, p1, room202);
+        AddEntry(tt11A, tpFatima, subPhysics, DayOfWeek.Thursday, p1, lab1);
+        AddEntry(tt9B, tpAhmed, subMath, DayOfWeek.Thursday, p2, room102);
+        AddEntry(tt10A, tpFatima, subChemistry, DayOfWeek.Thursday, p2, lab2);
+        AddEntry(tt11A, tpOmar, subArabic, DayOfWeek.Thursday, p3, room201);
+        AddEntry(tt9A, tpNoor, subEnglish, DayOfWeek.Thursday, p3, room101);
+        AddEntry(tt10B, tpAhmed, subMath, DayOfWeek.Thursday, p4, room202);
+        AddEntry(tt11A, tpNoor, subEnglish, DayOfWeek.Thursday, p5, room201);
 
         // ───────────────────────────────────────────────
         // 17. ATTENDANCE RECORDS (last 2 weeks of data)
@@ -441,7 +509,7 @@ public static class DatabaseSeeder
                     StudentProfileId = sp.Id,
                     TeacherProfileId = tpAhmed.Id,
                     SubjectId = subMath.Id,
-                    ClassSectionId = cls9A.Id,
+                    GroupId = grp9A.Id,
                     SemesterId = sem1.Id,
                     Date = date,
                     SessionTime = new TimeSpan(8, 0, 0),
@@ -461,7 +529,7 @@ public static class DatabaseSeeder
                 StudentProfileId = sp4.Id,
                 TeacherProfileId = tpFatima.Id,
                 SubjectId = subPhysics.Id,
-                ClassSectionId = cls10A.Id,
+                GroupId = grp10A.Id,
                 SemesterId = sem1.Id,
                 Date = date,
                 SessionTime = new TimeSpan(8, 0, 0),
@@ -479,7 +547,7 @@ public static class DatabaseSeeder
                 StudentProfileId = sp6.Id,
                 TeacherProfileId = tpFatima.Id,
                 SubjectId = subChemistry.Id,
-                ClassSectionId = cls11A.Id,
+                GroupId = grp11A.Id,
                 SemesterId = sem1.Id,
                 Date = date,
                 SessionTime = new TimeSpan(9, 0, 0),
@@ -816,8 +884,8 @@ public static class DatabaseSeeder
         // ───────────────────────────────────────────────
         db.AuditLogs.AddRange(
             new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.Login, EntityType = "ApplicationUser", EntityId = schoolAdmin.Id.ToString(), UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "School admin logged in" },
-            new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.Create, EntityType = "TeacherAssignment", UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "Assigned teachers to classes for Term 1" },
-            new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.TimetablePublish, EntityType = "TimetableVersion", EntityId = ttVersion.Id.ToString(), UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "Published Term 1 timetable" },
+            new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.Create, EntityType = "TeacherSubjectLink", UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "Created teacher subject links for Term 1" },
+            new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.TimetablePublish, EntityType = "TimetableVersion", EntityId = tt9A.Id.ToString(), UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "Published Term 1 timetable" },
             new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.ReportSubmission, EntityType = "WeeklyReport", EntityId = wr1.Id.ToString(), UserId = teacherAhmed.Id, UserEmail = teacherAhmed.Email, UserRole = "Teacher", Description = "Weekly report submitted for Ali — Math Week 5" },
             new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.InternalReportAction, EntityType = "InternalReport", EntityId = ir4.Id.ToString(), UserId = supervisorUser.Id, UserEmail = supervisorUser.Email, UserRole = "TeacherSupervisor", Description = "Escalated report about Mohammed to management" },
             new AuditLog { SchoolTenantId = school.Id, Action = AuditAction.FeatureFlagChange, EntityType = "FeatureFlag", UserId = schoolAdmin.Id, UserEmail = schoolAdmin.Email, UserRole = "SchoolAdmin", Description = "Enabled WhatsApp notifications feature" }

@@ -10,8 +10,8 @@ import { AcademicService } from '@core/services/data.service';
   template: `
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
-        <h4 class="card-title">Add Class</h4>
-        <p class="card-category">Create a new class</p>
+        <h4 class="card-title">Add Group</h4>
+        <p class="card-category">Create a new group</p>
       </div>
       <div class="card-body">
         <div class="form-row">
@@ -27,8 +27,8 @@ import { AcademicService } from '@core/services/data.service';
     </div>
     <div class="card">
       <div class="card-header card-header-info">
-        <h4 class="card-title">Classes</h4>
-        <p class="card-category">Manage classes and sections</p>
+        <h4 class="card-title">Groups</h4>
+        <p class="card-category">Manage groups</p>
       </div>
       <div class="card-body">
         <button class="btn btn-primary" (click)="showForm=!showForm" style="margin-bottom:15px">{{ showForm ? 'Cancel' : '+ Add' }}</button>
@@ -48,7 +48,7 @@ export class ClassesComponent implements OnInit {
   items: any[] = []; grades: any[] = []; showForm = false; form: any = {};
   constructor(private svc: AcademicService) {}
   ngOnInit() { this.load(); this.svc.getGrades().subscribe(g => this.grades = g); }
-  load() { this.svc.getClasses().subscribe(d => this.items = d); }
-  save() { this.svc.createClass(this.form).subscribe(() => { this.showForm = false; this.form = {}; this.load(); }); }
-  remove(id: string) { this.svc.deleteClass(id).subscribe(() => this.load()); }
+  load() { this.svc.getGroups().subscribe(d => this.items = d); }
+  save() { this.svc.createGroup(this.form).subscribe(() => { this.showForm = false; this.form = {}; this.load(); }); }
+  remove(id: string) { this.svc.deleteGroup(id).subscribe(() => this.load()); }
 }

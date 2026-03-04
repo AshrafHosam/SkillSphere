@@ -9,8 +9,8 @@ public class AttendanceRecordDto
     public string StudentName { get; set; } = string.Empty;
     public Guid SubjectId { get; set; }
     public string SubjectName { get; set; } = string.Empty;
-    public Guid ClassSectionId { get; set; }
-    public string ClassSectionName { get; set; } = string.Empty;
+    public Guid GroupId { get; set; }
+    public string GroupName { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public TimeSpan? SessionTime { get; set; }
     public AttendanceStatus Status { get; set; }
@@ -20,7 +20,7 @@ public class AttendanceRecordDto
 public class SubmitAttendanceRequest
 {
     public Guid SubjectId { get; set; }
-    public Guid ClassSectionId { get; set; }
+    public Guid GroupId { get; set; }
     public Guid SemesterId { get; set; }
     public DateTime Date { get; set; }
     public TimeSpan? SessionTime { get; set; }

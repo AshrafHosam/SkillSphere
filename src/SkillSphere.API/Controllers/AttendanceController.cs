@@ -8,7 +8,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Teacher,TeacherSupervisor,SchoolManager,SchoolAdmin")]
 public class AttendanceController : ControllerBase
 {
     private readonly IAttendanceService _attendanceService;
@@ -23,6 +23,7 @@ public class AttendanceController : ControllerBase
     private Guid TenantId => _currentUser.SchoolTenantId ?? throw new UnauthorizedAccessException("Tenant context required.");
 
     [HttpPost("submit")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> Submit([FromQuery] Guid teacherProfileId,
         [FromBody] SubmitAttendanceRequest req, CancellationToken ct)
     {
@@ -31,9 +32,9 @@ public class AttendanceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] DateTime date, [FromQuery] Guid? classId,
+    public async Task<IActionResult> Get([FromQuery] DateTime date, [FromQuery] Guid? groupId,
         [FromQuery] Guid? subjectId, CancellationToken ct)
-        => Ok((await _attendanceService.GetAttendanceAsync(TenantId, date, classId, subjectId, ct)).Data);
+        => Ok((await _attendanceService.GetAttendanceAsync(TenantId, date, groupId, subjectId, ct)).Data);
 
     [HttpGet("student/{studentProfileId:guid}")]
     public async Task<IActionResult> GetByStudent(Guid studentProfileId, [FromQuery] Guid semesterId, CancellationToken ct)

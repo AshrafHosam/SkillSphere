@@ -9,7 +9,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/internal-reports")]
-[Authorize]
+[Authorize(Roles = "Teacher,TeacherSupervisor,SchoolManager,SchoolAdmin")]
 public class InternalReportsController : ControllerBase
 {
     private readonly IInternalReportService _reportService;
@@ -37,6 +37,7 @@ public class InternalReportsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Teacher,TeacherSupervisor")]
     public async Task<IActionResult> Create([FromQuery] Guid teacherProfileId,
         [FromBody] CreateInternalReportRequest req, CancellationToken ct)
     {

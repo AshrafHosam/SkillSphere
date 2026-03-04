@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AttendanceService, AssignmentService } from '@core/services/data.service';
+import { AttendanceService, AssignmentService, TimetableService, AcademicService } from '@core/services/data.service';
 import { AuthService } from '@core/services/auth.service';
-import { TeacherAssignmentDto, StudentAssignmentDto, AttendanceRecordDto, SubmitAttendanceRequest, AttendanceEntryRequest } from '@core/models';
+import { TimetableEntryDto, AttendanceRecordDto, SubmitAttendanceRequest } from '@core/models';
 import { AttendanceStatus } from '@core/models/enums';
 
 interface StudentEntry {
@@ -11,6 +11,13 @@ interface StudentEntry {
   studentName: string;
   status: AttendanceStatus;
   notes: string;
+}
+
+interface SessionOption {
+  label: string;
+  subjectId: string;
+  groupId: string;
+  semesterId: string;
 }
 
 @Component({
@@ -36,11 +43,11 @@ interface StudentEntry {
         <div class="card-body">
           <div class="form-grid">
             <div class="form-group">
-              <label>Assignment (Subject / Class)</label>
-              <select [(ngModel)]="selectedAssignmentId" (ngModelChange)="onAssignmentChange()">
-                <option value="">-- Select --</option>
-                <option *ngFor="let a of teacherAssignments" [value]="a.id">
-                  {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
+              <label>Session (Subject / Group)</label>
+              <select [(ngModel)]="selectedSessionIdx" (ngModelChange)="onSessionChange()">
+                <option [ngValue]="-1">-- Select --</option>
+                <option *ngFor="let s of sessionOptions; let i = index" [ngValue]="i">
+                  {{s.label}}
                 </option>
               </select>
             </div>
@@ -57,7 +64,7 @@ interface StudentEntry {
       </div>
 
       <div class="alert alert-danger" *ngIf="alreadySubmitted">
-        Attendance for this class/subject/date has already been submitted.
+        Attendance for this group/subject/date has already been submitted.
       </div>
 
       <div class="card" *ngIf="studentEntries.length && !alreadySubmitted">
@@ -115,10 +122,10 @@ interface StudentEntry {
 
           <div class="table-responsive" *ngIf="records.length">
             <table class="table">
-              <thead><tr><th>Student</th><th>Subject</th><th>Class</th><th>Status</th><th>Notes</th></tr></thead>
+              <thead><tr><th>Student</th><th>Subject</th><th>Group</th><th>Status</th><th>Notes</th></tr></thead>
               <tbody>
                 <tr *ngFor="let r of records">
-                  <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.classSectionName}}</td>
+                  <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.groupName}}</td>
                   <td><span [class]="'badge-' + r.status.toLowerCase()">{{r.status}}</span></td>
                   <td>{{r.notes}}</td>
                 </tr>
@@ -145,8 +152,8 @@ export class AttendanceComponent implements OnInit {
   // Submit mode (teacher)
   mode: 'submit' | 'view' = 'submit';
   isTeacher = false;
-  teacherAssignments: TeacherAssignmentDto[] = [];
-  selectedAssignmentId = '';
+  sessionOptions: SessionOption[] = [];
+  selectedSessionIdx = -1;
   submitDate = '';
   submitSessionTime = '';
   studentEntries: StudentEntry[] = [];
@@ -156,9 +163,13 @@ export class AttendanceComponent implements OnInit {
   submitError = '';
   alreadySubmitted = false;
 
+  private semesters: any[] = [];
+
   constructor(
     private attendanceSvc: AttendanceService,
     private assignmentSvc: AssignmentService,
+    private timetableSvc: TimetableService,
+    private academicSvc: AcademicService,
     private auth: AuthService
   ) {}
 
@@ -174,33 +185,57 @@ export class AttendanceComponent implements OnInit {
       this.mode = 'submit';
       const profileId = this.auth.profileId;
       if (profileId) {
-        this.assignmentSvc.getTeacherAssignments({ teacherId: profileId }).subscribe(
-          a => this.teacherAssignments = a.filter(x => x.isActive)
-        );
+        // Load semesters to find active one, then get teacher schedule
+        this.academicSvc.getSemesters().subscribe(semesters => {
+          this.semesters = semesters;
+          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          if (activeSemester) {
+            this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
+              // Load versions first, then build session options with resolved groupId
+              this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
+                const seen = new Set<string>();
+                this.sessionOptions = [];
+                for (const e of entries) {
+                  const key = `${e.subjectId}_${e.timetableVersionId}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    const version = versions.find(v => v.id === e.timetableVersionId);
+                    this.sessionOptions.push({
+                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'}`,
+                      subjectId: e.subjectId,
+                      groupId: version?.groupId ?? '',
+                      semesterId: activeSemester.id
+                    });
+                  }
+                }
+              });
+            });
+          }
+        });
       }
     } else {
       this.mode = 'view';
     }
   }
 
-  onAssignmentChange() {
+  onSessionChange() {
     this.studentEntries = [];
     this.submitSuccess = false;
     this.submitError = '';
     this.alreadySubmitted = false;
-    if (!this.selectedAssignmentId) return;
+    if (this.selectedSessionIdx < 0) return;
 
-    const assignment = this.teacherAssignments.find(a => a.id === this.selectedAssignmentId);
-    if (!assignment) return;
+    const session = this.sessionOptions[this.selectedSessionIdx];
+    if (!session || !session.groupId) return;
 
-    // Load students in this class+semester
+    // Load students assigned to this group
     this.assignmentSvc.getStudentAssignments({
-      classId: assignment.classSectionId,
-      semesterId: assignment.semesterId
+      groupId: session.groupId,
+      semesterId: session.semesterId
     }).subscribe(students => {
       this.studentEntries = students
-        .filter(s => s.isActive)
-        .map(s => ({
+        .filter((s: any) => s.isActive)
+        .map((s: any) => ({
           studentProfileId: s.studentProfileId,
           studentName: s.studentName,
           status: AttendanceStatus.Present,
@@ -211,11 +246,11 @@ export class AttendanceComponent implements OnInit {
   }
 
   checkExistingAttendance() {
-    if (!this.selectedAssignmentId || !this.submitDate) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.selectedAssignmentId);
-    if (!assignment) return;
+    if (this.selectedSessionIdx < 0 || !this.submitDate) return;
+    const session = this.sessionOptions[this.selectedSessionIdx];
+    if (!session) return;
 
-    this.attendanceSvc.getAttendance(this.submitDate, assignment.classSectionId, assignment.subjectId).subscribe(
+    this.attendanceSvc.getAttendance(this.submitDate, session.groupId, session.subjectId).subscribe(
       existing => { this.alreadySubmitted = existing.length > 0; },
       () => { this.alreadySubmitted = false; }
     );
@@ -227,18 +262,18 @@ export class AttendanceComponent implements OnInit {
   }
 
   submitAttendance() {
-    if (!this.selectedAssignmentId || this.studentEntries.length === 0) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.selectedAssignmentId);
-    if (!assignment) return;
+    if (this.selectedSessionIdx < 0 || this.studentEntries.length === 0) return;
+    const session = this.sessionOptions[this.selectedSessionIdx];
+    if (!session) return;
 
     this.submitting = true;
     this.submitSuccess = false;
     this.submitError = '';
 
     const request: SubmitAttendanceRequest = {
-      subjectId: assignment.subjectId,
-      classSectionId: assignment.classSectionId,
-      semesterId: assignment.semesterId,
+      subjectId: session.subjectId,
+      groupId: session.groupId,
+      semesterId: session.semesterId,
       date: this.submitDate,
       sessionTime: this.submitSessionTime || undefined,
       entries: this.studentEntries.map(e => ({

@@ -6,15 +6,15 @@ import {
   TenantDto, CreateTenantRequest, UpdateTenantRequest, FeatureFlagDto,
   UserDto, CreateUserRequest, UpdateUserRequest, CreateTeacherRequest,
   CreateStudentRequest, TeacherProfileDto, StudentProfileDto, ParentProfileDto, LinkParentRequest,
-  GradeDto, ClassSectionDto, SubjectDto, DepartmentDto, SemesterDto,
-  StudentAssignmentDto, TeacherAssignmentDto,
-  TimetableVersionDto, TimetableEntryDto, CreateTimetableVersionRequest, CreateTimetableEntryRequest, TimetableConflictDto,
+  GradeDto, GroupDto, SubjectDto, DepartmentDto, SemesterDto,
+  StudentAssignmentDto, PeriodDefinitionDto, RoomDto, CurriculumContractDto, TeacherSubjectLinkDto,
+  TimetableVersionDto, TimetableEntryDto, CreateTimetableVersionRequest, AddTimetableEntryRequest, TimetableValidationError,
   AttendanceRecordDto, SubmitAttendanceRequest, AttendanceComplianceDto,
   GradeRecordDto, CreateGradeRecordRequest, BehaviorFeedbackDto, CreateBehaviorFeedbackRequest,
   WeeklyReportDto, CreateWeeklyReportRequest, WeeklyReportComplianceDto,
   InternalReportDto, CreateInternalReportRequest, AddInternalReportCommentRequest, EscalateInternalReportRequest,
   AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, SupervisorDashboardDto, ParentDashboardDto,
-  PagedResult
+  PagedResult, RoomType
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -55,11 +55,11 @@ export class AcademicService {
   createGrade(req: any): Observable<GradeDto> { return this.api.post('academic/grades', req); }
   updateGrade(id: string, req: any): Observable<GradeDto> { return this.api.put(`academic/grades/${id}`, req); }
   deleteGrade(id: string): Observable<void> { return this.api.delete(`academic/grades/${id}`); }
-  // Classes
-  getClasses(gradeId?: string): Observable<ClassSectionDto[]> { return this.api.get('academic/classes', { gradeId }); }
-  createClass(req: any): Observable<ClassSectionDto> { return this.api.post('academic/classes', req); }
-  updateClass(id: string, req: any): Observable<ClassSectionDto> { return this.api.put(`academic/classes/${id}`, req); }
-  deleteClass(id: string): Observable<void> { return this.api.delete(`academic/classes/${id}`); }
+  // Groups (was Classes)
+  getGroups(gradeId?: string): Observable<GroupDto[]> { return this.api.get('academic/groups', { gradeId }); }
+  createGroup(req: any): Observable<GroupDto> { return this.api.post('academic/groups', req); }
+  updateGroup(id: string, req: any): Observable<GroupDto> { return this.api.put(`academic/groups/${id}`, req); }
+  deleteGroup(id: string): Observable<void> { return this.api.delete(`academic/groups/${id}`); }
   // Subjects
   getSubjects(): Observable<SubjectDto[]> { return this.api.get('academic/subjects'); }
   createSubject(req: any): Observable<SubjectDto> { return this.api.post('academic/subjects', req); }
@@ -83,24 +83,25 @@ export class AssignmentService {
   getStudentAssignments(params?: any): Observable<StudentAssignmentDto[]> { return this.api.get('assignments/students', params); }
   createStudentAssignment(req: any): Observable<StudentAssignmentDto> { return this.api.post('assignments/students', req); }
   deleteStudentAssignment(id: string): Observable<void> { return this.api.delete(`assignments/students/${id}`); }
-  getTeacherAssignments(params?: any): Observable<TeacherAssignmentDto[]> { return this.api.get('assignments/teachers', params); }
-  createTeacherAssignment(req: any): Observable<TeacherAssignmentDto> { return this.api.post('assignments/teachers', req); }
-  deleteTeacherAssignment(id: string): Observable<void> { return this.api.delete(`assignments/teachers/${id}`); }
 }
 
 @Injectable({ providedIn: 'root' })
 export class TimetableService {
   constructor(private api: ApiService) {}
-  getVersions(semesterId?: string): Observable<TimetableVersionDto[]> { return this.api.get('timetable/versions', { semesterId }); }
+  getVersions(groupId?: string, semesterId?: string): Observable<TimetableVersionDto[]> { return this.api.get('timetable/versions', { groupId, semesterId }); }
   createVersion(req: CreateTimetableVersionRequest): Observable<TimetableVersionDto> { return this.api.post('timetable/versions', req); }
-  publishVersion(id: string): Observable<void> { return this.api.post(`timetable/versions/${id}/publish`); }
   getEntries(versionId: string): Observable<TimetableEntryDto[]> { return this.api.get(`timetable/versions/${versionId}/entries`); }
-  getTeacherTimetable(teacherProfileId: string, semesterId: string): Observable<TimetableEntryDto[]> {
+  addEntry(req: AddTimetableEntryRequest): Observable<TimetableEntryDto> { return this.api.post('timetable/entries', req); }
+  removeEntry(id: string): Observable<void> { return this.api.delete(`timetable/entries/${id}`); }
+  validate(versionId: string): Observable<TimetableValidationError[]> { return this.api.post(`timetable/versions/${versionId}/validate`); }
+  publish(versionId: string): Observable<void> { return this.api.post(`timetable/versions/${versionId}/publish`); }
+  archive(versionId: string): Observable<void> { return this.api.post(`timetable/versions/${versionId}/archive`); }
+  getTeacherSchedule(teacherProfileId: string, semesterId: string): Observable<TimetableEntryDto[]> {
     return this.api.get(`timetable/teacher/${teacherProfileId}`, { semesterId });
   }
-  createEntry(req: CreateTimetableEntryRequest): Observable<TimetableEntryDto> { return this.api.post('timetable/entries', req); }
-  validateEntry(req: CreateTimetableEntryRequest): Observable<TimetableConflictDto> { return this.api.post('timetable/entries/validate', req); }
-  deleteEntry(id: string): Observable<void> { return this.api.delete(`timetable/entries/${id}`); }
+  getGroupSchedule(groupId: string, semesterId: string): Observable<TimetableEntryDto[]> {
+    return this.api.get(`timetable/group/${groupId}`, { semesterId });
+  }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -109,8 +110,8 @@ export class AttendanceService {
   submit(teacherProfileId: string, req: SubmitAttendanceRequest): Observable<void> {
     return this.api.post(`attendance/submit?teacherProfileId=${teacherProfileId}`, req);
   }
-  getAttendance(date: string, classId?: string, subjectId?: string): Observable<AttendanceRecordDto[]> {
-    return this.api.get('attendance', { date, classId, subjectId });
+  getAttendance(date: string, groupId?: string, subjectId?: string): Observable<AttendanceRecordDto[]> {
+    return this.api.get('attendance', { date, groupId, subjectId });
   }
   getStudentAttendance(studentProfileId: string, semesterId: string): Observable<AttendanceRecordDto[]> {
     return this.api.get(`attendance/student/${studentProfileId}`, { semesterId });
@@ -178,4 +179,42 @@ export class DashboardService {
   getParentDashboard(parentProfileId: string): Observable<ParentDashboardDto> {
     return this.api.get(`dashboard/parent/${parentProfileId}`);
   }
+}
+
+@Injectable({ providedIn: 'root' })
+export class PeriodDefinitionService {
+  constructor(private api: ApiService) {}
+  getAll(): Observable<PeriodDefinitionDto[]> { return this.api.get('perioddefinitions'); }
+  create(req: any): Observable<PeriodDefinitionDto> { return this.api.post('perioddefinitions', req); }
+  update(id: string, req: any): Observable<PeriodDefinitionDto> { return this.api.put(`perioddefinitions/${id}`, req); }
+  delete(id: string): Observable<void> { return this.api.delete(`perioddefinitions/${id}`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class RoomService {
+  constructor(private api: ApiService) {}
+  getAll(type?: RoomType): Observable<RoomDto[]> { return this.api.get('rooms', { type }); }
+  create(req: any): Observable<RoomDto> { return this.api.post('rooms', req); }
+  update(id: string, req: any): Observable<RoomDto> { return this.api.put(`rooms/${id}`, req); }
+  delete(id: string): Observable<void> { return this.api.delete(`rooms/${id}`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class CurriculumService {
+  constructor(private api: ApiService) {}
+  getContracts(gradeId?: string, semesterId?: string): Observable<CurriculumContractDto[]> {
+    return this.api.get('curriculum', { gradeId, semesterId });
+  }
+  setContract(req: any): Observable<CurriculumContractDto> { return this.api.post('curriculum', req); }
+  removeContract(id: string): Observable<void> { return this.api.delete(`curriculum/${id}`); }
+}
+
+@Injectable({ providedIn: 'root' })
+export class TeacherSubjectLinkService {
+  constructor(private api: ApiService) {}
+  getLinks(teacherProfileId?: string): Observable<TeacherSubjectLinkDto[]> {
+    return this.api.get('teachersubjectlinks', { teacherProfileId });
+  }
+  create(req: any): Observable<TeacherSubjectLinkDto> { return this.api.post('teachersubjectlinks', req); }
+  remove(id: string): Observable<void> { return this.api.delete(`teachersubjectlinks/${id}`); }
 }

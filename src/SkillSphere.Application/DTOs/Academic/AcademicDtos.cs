@@ -1,3 +1,5 @@
+using SkillSphere.Domain.Enums;
+
 namespace SkillSphere.Application.DTOs.Academic;
 
 public class GradeDto
@@ -6,7 +8,7 @@ public class GradeDto
     public string Name { get; set; } = string.Empty;
     public int OrderIndex { get; set; }
     public bool IsActive { get; set; }
-    public int ClassCount { get; set; }
+    public int GroupCount { get; set; }
 }
 
 public class CreateGradeRequest
@@ -15,7 +17,7 @@ public class CreateGradeRequest
     public int OrderIndex { get; set; }
 }
 
-public class ClassSectionDto
+public class GroupDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -26,7 +28,7 @@ public class ClassSectionDto
     public int StudentCount { get; set; }
 }
 
-public class CreateClassSectionRequest
+public class CreateGroupRequest
 {
     public string Name { get; set; } = string.Empty;
     public Guid GradeId { get; set; }
@@ -40,6 +42,7 @@ public class SubjectDto
     public string? Code { get; set; }
     public Guid? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
+    public RoomType? RequiredRoomType { get; set; }
     public bool IsActive { get; set; }
 }
 
@@ -48,6 +51,7 @@ public class CreateSubjectRequest
     public string Name { get; set; } = string.Empty;
     public string? Code { get; set; }
     public Guid? DepartmentId { get; set; }
+    public RoomType? RequiredRoomType { get; set; }
 }
 
 public class DepartmentDto

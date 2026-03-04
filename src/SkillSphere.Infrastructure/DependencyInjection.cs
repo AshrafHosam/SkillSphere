@@ -15,8 +15,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<SkillSphereDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection"),
-                sqliteOptions => sqliteOptions.MigrationsAssembly(typeof(SkillSphereDbContext).Assembly.FullName)));
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -36,6 +36,10 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IPeriodDefinitionService, PeriodDefinitionService>();
+        services.AddScoped<IRoomService, RoomService>();
+        services.AddScoped<ICurriculumService, CurriculumService>();
+        services.AddScoped<ITeacherSubjectLinkService, TeacherSubjectLinkService>();
 
         return services;
     }

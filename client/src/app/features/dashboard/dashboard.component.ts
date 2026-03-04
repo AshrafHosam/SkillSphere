@@ -184,8 +184,8 @@ import { AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, Supervisor
                     <tr *ngFor="let s of teacherData!.todaySessions">
                       <td>{{ s.startTime }} - {{ s.endTime }}</td>
                       <td>{{ s.subjectName }}</td>
-                      <td>{{ s.gradeName }} {{ s.className }}</td>
-                      <td>{{ s.room || '-' }}</td>
+                      <td>{{ s.gradeName }} {{ s.groupName }}</td>
+                      <td>{{ s.roomName || '-' }}</td>
                       <td><span [class]="s.attendanceSubmitted ? 'badge badge-success' : 'badge badge-warning'">{{ s.attendanceSubmitted ? 'Done' : 'Pending' }}</span></td>
                     </tr>
                   </tbody>
@@ -266,7 +266,7 @@ import { AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, Supervisor
           <div class="card">
             <div class="card-header card-header-info">
               <h4 class="card-title">{{ child.studentName }}</h4>
-              <p class="card-category">{{ child.gradeName }} - {{ child.className }}</p>
+              <p class="card-category">{{ child.gradeName }} - {{ child.groupName }}</p>
             </div>
             <div class="card-body">
               <div class="child-stats-row">

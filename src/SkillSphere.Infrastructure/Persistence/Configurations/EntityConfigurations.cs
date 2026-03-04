@@ -103,13 +103,13 @@ public class GradeConfig : IEntityTypeConfiguration<Grade>
     }
 }
 
-public class ClassSectionConfig : IEntityTypeConfiguration<ClassSection>
+public class GroupConfig : IEntityTypeConfiguration<Group>
 {
-    public void Configure(EntityTypeBuilder<ClassSection> b)
+    public void Configure(EntityTypeBuilder<Group> b)
     {
         b.HasKey(x => x.Id);
         b.Property(x => x.Name).HasMaxLength(100).IsRequired();
-        b.HasOne(x => x.Grade).WithMany(g => g.ClassSections).HasForeignKey(x => x.GradeId);
+        b.HasOne(x => x.Grade).WithMany(g => g.Groups).HasForeignKey(x => x.GradeId);
     }
 }
 
@@ -151,12 +151,42 @@ public class StudentAssignmentConfig : IEntityTypeConfiguration<StudentAssignmen
     }
 }
 
-public class TeacherAssignmentConfig : IEntityTypeConfiguration<TeacherAssignment>
+public class RoomConfig : IEntityTypeConfiguration<Room>
 {
-    public void Configure(EntityTypeBuilder<TeacherAssignment> b)
+    public void Configure(EntityTypeBuilder<Room> b)
     {
         b.HasKey(x => x.Id);
-        b.HasIndex(x => new { x.TeacherProfileId, x.SubjectId, x.ClassSectionId, x.SemesterId }).IsUnique();
+        b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+        b.Property(x => x.Code).HasMaxLength(50).IsRequired();
+        b.HasIndex(x => new { x.SchoolTenantId, x.Code }).IsUnique();
+    }
+}
+
+public class PeriodDefinitionConfig : IEntityTypeConfiguration<PeriodDefinition>
+{
+    public void Configure(EntityTypeBuilder<PeriodDefinition> b)
+    {
+        b.HasKey(x => x.Id);
+        b.Property(x => x.Label).HasMaxLength(100);
+        b.HasIndex(x => new { x.SchoolTenantId, x.PeriodNumber }).IsUnique();
+    }
+}
+
+public class CurriculumContractConfig : IEntityTypeConfiguration<CurriculumContract>
+{
+    public void Configure(EntityTypeBuilder<CurriculumContract> b)
+    {
+        b.HasKey(x => x.Id);
+        b.HasIndex(x => new { x.SchoolTenantId, x.GradeId, x.SemesterId, x.SubjectId }).IsUnique();
+    }
+}
+
+public class TeacherSubjectLinkConfig : IEntityTypeConfiguration<TeacherSubjectLink>
+{
+    public void Configure(EntityTypeBuilder<TeacherSubjectLink> b)
+    {
+        b.HasKey(x => x.Id);
+        b.HasIndex(x => new { x.SchoolTenantId, x.TeacherProfileId, x.SubjectId, x.GradeId }).IsUnique();
     }
 }
 
@@ -166,6 +196,7 @@ public class TimetableVersionConfig : IEntityTypeConfiguration<TimetableVersion>
     {
         b.HasKey(x => x.Id);
         b.Property(x => x.Name).HasMaxLength(200);
+        b.HasIndex(x => new { x.SchoolTenantId, x.GroupId, x.SemesterId, x.VersionNumber }).IsUnique();
     }
 }
 
@@ -174,9 +205,11 @@ public class TimetableEntryConfig : IEntityTypeConfiguration<TimetableEntry>
     public void Configure(EntityTypeBuilder<TimetableEntry> b)
     {
         b.HasKey(x => x.Id);
-        b.Property(x => x.Room).HasMaxLength(100);
         b.HasOne(x => x.TimetableVersion).WithMany(v => v.Entries).HasForeignKey(x => x.TimetableVersionId);
         b.HasOne(x => x.TeacherProfile).WithMany(t => t.TimetableEntries).HasForeignKey(x => x.TeacherProfileId);
+        b.HasOne(x => x.Room).WithMany(r => r.TimetableEntries).HasForeignKey(x => x.RoomId);
+        b.HasOne(x => x.PeriodDefinition).WithMany(p => p.TimetableEntries).HasForeignKey(x => x.PeriodDefinitionId);
+        b.HasIndex(x => new { x.TimetableVersionId, x.DayOfWeek, x.PeriodDefinitionId }).IsUnique();
     }
 }
 

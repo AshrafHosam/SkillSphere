@@ -47,7 +47,7 @@ public class ParentDashboardDto
 public class ComplianceHeatmapItem
 {
     public string GradeName { get; set; } = string.Empty;
-    public string ClassName { get; set; } = string.Empty;
+    public string GroupName { get; set; } = string.Empty;
     public double AttendanceRate { get; set; }
     public double ReportRate { get; set; }
 }
@@ -72,11 +72,11 @@ public class TodaySessionDto
 {
     public Guid TimetableEntryId { get; set; }
     public string SubjectName { get; set; } = string.Empty;
-    public string ClassName { get; set; } = string.Empty;
+    public string GroupName { get; set; } = string.Empty;
     public string GradeName { get; set; } = string.Empty;
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
-    public string? Room { get; set; }
+    public string? RoomName { get; set; }
     public bool AttendanceSubmitted { get; set; }
 }
 
@@ -93,7 +93,7 @@ public class StudentCardDto
     public Guid StudentProfileId { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string GradeName { get; set; } = string.Empty;
-    public string ClassName { get; set; } = string.Empty;
+    public string GroupName { get; set; } = string.Empty;
     public int TotalWeeklyReports { get; set; }
     public double? AverageGrade { get; set; }
 }

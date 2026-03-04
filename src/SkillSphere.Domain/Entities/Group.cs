@@ -2,9 +2,9 @@ using SkillSphere.Domain.Common;
 
 namespace SkillSphere.Domain.Entities;
 
-public class ClassSection : TenantEntity
+public class Group : TenantEntity
 {
-    public string Name { get; set; } = string.Empty; // e.g., "4A", "Section B"
+    public string Name { get; set; } = string.Empty;
     public Guid GradeId { get; set; }
     public Grade Grade { get; set; } = null!;
     public int Capacity { get; set; }
@@ -12,6 +12,5 @@ public class ClassSection : TenantEntity
 
     // Navigation
     public ICollection<StudentAssignment> StudentAssignments { get; set; } = [];
-    public ICollection<TeacherAssignment> TeacherAssignments { get; set; } = [];
-    public ICollection<TimetableEntry> TimetableEntries { get; set; } = [];
+    public ICollection<TimetableVersion> TimetableVersions { get; set; } = [];
 }

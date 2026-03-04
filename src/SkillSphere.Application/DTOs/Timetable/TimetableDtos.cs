@@ -6,6 +6,8 @@ public class TimetableVersionDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public Guid GroupId { get; set; }
+    public string GroupName { get; set; } = string.Empty;
     public Guid SemesterId { get; set; }
     public string SemesterName { get; set; } = string.Empty;
     public int VersionNumber { get; set; }
@@ -16,44 +18,43 @@ public class TimetableVersionDto
 
 public class CreateTimetableVersionRequest
 {
-    public string Name { get; set; } = string.Empty;
+    public Guid GroupId { get; set; }
     public Guid SemesterId { get; set; }
+    public string Name { get; set; } = string.Empty;
 }
 
 public class TimetableEntryDto
 {
     public Guid Id { get; set; }
     public Guid TimetableVersionId { get; set; }
-    public Guid TeacherProfileId { get; set; }
-    public string TeacherName { get; set; } = string.Empty;
     public Guid SubjectId { get; set; }
     public string SubjectName { get; set; } = string.Empty;
-    public Guid ClassSectionId { get; set; }
-    public string ClassSectionName { get; set; } = string.Empty;
-    public Guid GradeId { get; set; }
-    public string GradeName { get; set; } = string.Empty;
+    public Guid TeacherProfileId { get; set; }
+    public string TeacherName { get; set; } = string.Empty;
+    public Guid RoomId { get; set; }
+    public string RoomName { get; set; } = string.Empty;
+    public RoomType RoomType { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
+    public Guid PeriodDefinitionId { get; set; }
+    public int PeriodNumber { get; set; }
+    public string PeriodLabel { get; set; } = string.Empty;
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
-    public string? Room { get; set; }
 }
 
-public class CreateTimetableEntryRequest
+public class AddTimetableEntryRequest
 {
     public Guid TimetableVersionId { get; set; }
-    public Guid TeacherProfileId { get; set; }
     public Guid SubjectId { get; set; }
-    public Guid ClassSectionId { get; set; }
-    public Guid GradeId { get; set; }
+    public Guid TeacherProfileId { get; set; }
+    public Guid RoomId { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
-    public TimeSpan StartTime { get; set; }
-    public TimeSpan EndTime { get; set; }
-    public string? Room { get; set; }
+    public Guid PeriodDefinitionId { get; set; }
 }
 
-public class TimetableConflict
+public class TimetableValidationError
 {
-    public string ConflictType { get; set; } = string.Empty; // TeacherOverlap, ClassOverlap
-    public string Description { get; set; } = string.Empty;
-    public TimetableEntryDto ExistingEntry { get; set; } = null!;
+    public string Rule { get; set; } = string.Empty;
+    public string Severity { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 }

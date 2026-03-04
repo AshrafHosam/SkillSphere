@@ -10,7 +10,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "SchoolAdmin,SchoolManager,PlatformSuperAdmin")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;

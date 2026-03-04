@@ -65,7 +65,7 @@ public class InternalReportService : IInternalReportService
                 var scope = await _db.SupervisorScopes
                     .FirstOrDefaultAsync(s => s.IsActive &&
                         (s.GradeId == null || s.GradeId == studentAssignment.GradeId) &&
-                        (s.ClassSectionId == null || s.ClassSectionId == studentAssignment.ClassSectionId), ct);
+                        (s.GroupId == null || s.GroupId == studentAssignment.GroupId), ct);
                 supervisorId = scope?.TeacherProfileId;
             }
         }

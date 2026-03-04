@@ -6,8 +6,8 @@ export interface AttendanceRecordDto {
   studentName: string;
   subjectId: string;
   subjectName: string;
-  classSectionId: string;
-  classSectionName: string;
+  groupId: string;
+  groupName: string;
   date: string;
   sessionTime?: string;
   status: AttendanceStatus;
@@ -16,7 +16,7 @@ export interface AttendanceRecordDto {
 
 export interface SubmitAttendanceRequest {
   subjectId: string;
-  classSectionId: string;
+  groupId: string;
   semesterId: string;
   date: string;
   sessionTime?: string;

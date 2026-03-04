@@ -11,11 +11,11 @@ public interface IAcademicService
     Task<Result<GradeDto>> UpdateGradeAsync(Guid id, CreateGradeRequest request, CancellationToken ct = default);
     Task<Result> DeleteGradeAsync(Guid id, CancellationToken ct = default);
 
-    // Class Sections
-    Task<Result<List<ClassSectionDto>>> GetClassSectionsAsync(Guid tenantId, Guid? gradeId = null, CancellationToken ct = default);
-    Task<Result<ClassSectionDto>> CreateClassSectionAsync(Guid tenantId, CreateClassSectionRequest request, CancellationToken ct = default);
-    Task<Result<ClassSectionDto>> UpdateClassSectionAsync(Guid id, CreateClassSectionRequest request, CancellationToken ct = default);
-    Task<Result> DeleteClassSectionAsync(Guid id, CancellationToken ct = default);
+    // Groups (was ClassSections)
+    Task<Result<List<GroupDto>>> GetGroupsAsync(Guid tenantId, Guid? gradeId = null, CancellationToken ct = default);
+    Task<Result<GroupDto>> CreateGroupAsync(Guid tenantId, CreateGroupRequest request, CancellationToken ct = default);
+    Task<Result<GroupDto>> UpdateGroupAsync(Guid id, CreateGroupRequest request, CancellationToken ct = default);
+    Task<Result> DeleteGroupAsync(Guid id, CancellationToken ct = default);
 
     // Subjects
     Task<Result<List<SubjectDto>>> GetSubjectsAsync(Guid tenantId, CancellationToken ct = default);

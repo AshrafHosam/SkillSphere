@@ -7,7 +7,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "PlatformSuperAdmin")]
 public class TenantsController : ControllerBase
 {
     private readonly ITenantService _tenantService;

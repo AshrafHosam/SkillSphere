@@ -1,10 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { GradesService, AssignmentService, AcademicService } from '@core/services/data.service';
+import { GradesService, AssignmentService, AcademicService, TimetableService } from '@core/services/data.service';
 import { AuthService } from '@core/services/auth.service';
 import { LocalDatePipe } from '@core/pipes/local-date.pipe';
-import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFeedbackDto, CreateGradeRecordRequest, CreateBehaviorFeedbackRequest, SemesterDto } from '@core/models';
+import { StudentAssignmentDto, GradeRecordDto, BehaviorFeedbackDto, CreateGradeRecordRequest, CreateBehaviorFeedbackRequest, SemesterDto, TimetableEntryDto, TimetableVersionDto } from '@core/models';
+
+interface SessionOption {
+  label: string;
+  subjectId: string;
+  groupId: string;
+  semesterId: string;
+}
 
 @Component({
   selector: 'app-grades-records',
@@ -29,11 +36,11 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
         <div class="card-body" *ngIf="showGradeForm">
           <div class="form-grid">
             <div class="form-group">
-              <label>Assignment (Subject / Class)</label>
-              <select [(ngModel)]="gradeForm.assignmentId" (ngModelChange)="onGradeAssignmentChange()">
-                <option value="">-- Select --</option>
-                <option *ngFor="let a of teacherAssignments" [value]="a.id">
-                  {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
+              <label>Session (Subject / Group)</label>
+              <select [(ngModel)]="gradeForm.sessionIdx" (ngModelChange)="onGradeSessionChange()">
+                <option [ngValue]="-1">-- Select --</option>
+                <option *ngFor="let s of sessionOptions; let i = index" [ngValue]="i">
+                  {{s.label}}
                 </option>
               </select>
             </div>
@@ -123,11 +130,11 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
         <div class="card-body" *ngIf="showBehaviorForm">
           <div class="form-grid">
             <div class="form-group">
-              <label>Assignment (Subject / Class)</label>
-              <select [(ngModel)]="behaviorForm.assignmentId" (ngModelChange)="onBehaviorAssignmentChange()">
-                <option value="">-- Select --</option>
-                <option *ngFor="let a of teacherAssignments" [value]="a.id">
-                  {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
+              <label>Session (Subject / Group)</label>
+              <select [(ngModel)]="behaviorForm.sessionIdx" (ngModelChange)="onBehaviorSessionChange()">
+                <option [ngValue]="-1">-- Select --</option>
+                <option *ngFor="let s of sessionOptions; let i = index" [ngValue]="i">
+                  {{s.label}}
                 </option>
               </select>
             </div>
@@ -202,14 +209,14 @@ import { TeacherAssignmentDto, StudentAssignmentDto, GradeRecordDto, BehaviorFee
 export class GradesRecordsComponent implements OnInit {
   tab = 'grades';
   isTeacher = false;
-  teacherAssignments: TeacherAssignmentDto[] = [];
+  sessionOptions: SessionOption[] = [];
   letterGrades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F'];
 
   // Grade Records
   gradeRecords: GradeRecordDto[] = [];
   showGradeForm = false;
   gradeStudents: StudentAssignmentDto[] = [];
-  gradeForm = { assignmentId: '', studentProfileId: '', score: null as number | null, maxScore: null as number | null, letterGrade: '', assessmentType: '', notes: '' };
+  gradeForm = { sessionIdx: -1 as number, studentProfileId: '', score: null as number | null, maxScore: null as number | null, letterGrade: '', assessmentType: '', notes: '' };
   gradeSubmitting = false;
   gradeSuccess = false;
   gradeError = '';
@@ -218,7 +225,7 @@ export class GradesRecordsComponent implements OnInit {
   behaviorFeedback: BehaviorFeedbackDto[] = [];
   showBehaviorForm = false;
   behaviorStudents: StudentAssignmentDto[] = [];
-  behaviorForm = { assignmentId: '', studentProfileId: '', category: '', description: '', rating: 0 };
+  behaviorForm = { sessionIdx: -1 as number, studentProfileId: '', category: '', description: '', rating: 0 };
   behaviorSubmitting = false;
   behaviorSuccess = false;
   behaviorError = '';
@@ -226,6 +233,8 @@ export class GradesRecordsComponent implements OnInit {
   constructor(
     private gradesSvc: GradesService,
     private assignmentSvc: AssignmentService,
+    private timetableSvc: TimetableService,
+    private academicSvc: AcademicService,
     private auth: AuthService
   ) {}
 
@@ -238,36 +247,58 @@ export class GradesRecordsComponent implements OnInit {
     if (this.isTeacher) {
       const profileId = this.auth.profileId;
       if (profileId) {
-        this.assignmentSvc.getTeacherAssignments({ teacherId: profileId }).subscribe(
-          a => this.teacherAssignments = a.filter(x => x.isActive)
-        );
+        this.academicSvc.getSemesters().subscribe(semesters => {
+          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          if (activeSemester) {
+            this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
+              this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
+                const seen = new Set<string>();
+                this.sessionOptions = [];
+                for (const e of entries) {
+                  const key = `${e.subjectId}_${e.timetableVersionId}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    const version = versions.find(v => v.id === e.timetableVersionId);
+                    this.sessionOptions.push({
+                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'}`,
+                      subjectId: e.subjectId,
+                      groupId: version?.groupId ?? '',
+                      semesterId: activeSemester.id
+                    });
+                  }
+                }
+              });
+            });
+          }
+        });
       }
     }
   }
 
-  onGradeAssignmentChange() {
+  onGradeSessionChange() {
     this.gradeStudents = [];
     this.gradeForm.studentProfileId = '';
-    if (!this.gradeForm.assignmentId) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.gradeForm.assignmentId);
-    if (!assignment) return;
-    this.assignmentSvc.getStudentAssignments({ classId: assignment.classSectionId, semesterId: assignment.semesterId })
+    if (this.gradeForm.sessionIdx < 0) return;
+    const session = this.sessionOptions[this.gradeForm.sessionIdx];
+    if (!session || !session.groupId) return;
+    this.assignmentSvc.getStudentAssignments({ groupId: session.groupId, semesterId: session.semesterId })
       .subscribe(s => this.gradeStudents = s.filter(x => x.isActive));
   }
 
-  onBehaviorAssignmentChange() {
+  onBehaviorSessionChange() {
     this.behaviorStudents = [];
     this.behaviorForm.studentProfileId = '';
-    if (!this.behaviorForm.assignmentId) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.behaviorForm.assignmentId);
-    if (!assignment) return;
-    this.assignmentSvc.getStudentAssignments({ classId: assignment.classSectionId, semesterId: assignment.semesterId })
+    if (this.behaviorForm.sessionIdx < 0) return;
+    const session = this.sessionOptions[this.behaviorForm.sessionIdx];
+    if (!session || !session.groupId) return;
+    this.assignmentSvc.getStudentAssignments({ groupId: session.groupId, semesterId: session.semesterId })
       .subscribe(s => this.behaviorStudents = s.filter(x => x.isActive));
   }
 
   submitGradeRecord() {
-    const assignment = this.teacherAssignments.find(a => a.id === this.gradeForm.assignmentId);
-    if (!assignment || !this.gradeForm.studentProfileId) return;
+    if (this.gradeForm.sessionIdx < 0 || !this.gradeForm.studentProfileId) return;
+    const session = this.sessionOptions[this.gradeForm.sessionIdx];
+    if (!session) return;
 
     this.gradeSubmitting = true;
     this.gradeSuccess = false;
@@ -275,8 +306,8 @@ export class GradesRecordsComponent implements OnInit {
 
     const req: CreateGradeRecordRequest = {
       studentProfileId: this.gradeForm.studentProfileId,
-      subjectId: assignment.subjectId,
-      semesterId: assignment.semesterId,
+      subjectId: session.subjectId,
+      semesterId: session.semesterId,
       score: this.gradeForm.score ?? undefined,
       maxScore: this.gradeForm.maxScore ?? undefined,
       letterGrade: this.gradeForm.letterGrade || undefined,
@@ -289,7 +320,7 @@ export class GradesRecordsComponent implements OnInit {
         this.gradeSubmitting = false;
         this.gradeSuccess = true;
         this.gradeRecords = [record, ...this.gradeRecords];
-        this.gradeForm = { assignmentId: this.gradeForm.assignmentId, studentProfileId: '', score: null, maxScore: this.gradeForm.maxScore, letterGrade: '', assessmentType: this.gradeForm.assessmentType, notes: '' };
+        this.gradeForm = { sessionIdx: this.gradeForm.sessionIdx, studentProfileId: '', score: null, maxScore: this.gradeForm.maxScore, letterGrade: '', assessmentType: this.gradeForm.assessmentType, notes: '' };
       },
       error: (err) => {
         this.gradeSubmitting = false;
@@ -299,8 +330,9 @@ export class GradesRecordsComponent implements OnInit {
   }
 
   submitBehaviorFeedback() {
-    const assignment = this.teacherAssignments.find(a => a.id === this.behaviorForm.assignmentId);
-    if (!assignment || !this.behaviorForm.studentProfileId || !this.behaviorForm.category) return;
+    if (this.behaviorForm.sessionIdx < 0 || !this.behaviorForm.studentProfileId || !this.behaviorForm.category) return;
+    const session = this.sessionOptions[this.behaviorForm.sessionIdx];
+    if (!session) return;
 
     this.behaviorSubmitting = true;
     this.behaviorSuccess = false;
@@ -308,7 +340,7 @@ export class GradesRecordsComponent implements OnInit {
 
     const req: CreateBehaviorFeedbackRequest = {
       studentProfileId: this.behaviorForm.studentProfileId,
-      semesterId: assignment.semesterId,
+      semesterId: session.semesterId,
       category: this.behaviorForm.category,
       description: this.behaviorForm.description || undefined,
       rating: this.behaviorForm.rating > 0 ? this.behaviorForm.rating : undefined
@@ -319,7 +351,7 @@ export class GradesRecordsComponent implements OnInit {
         this.behaviorSubmitting = false;
         this.behaviorSuccess = true;
         this.behaviorFeedback = [feedback, ...this.behaviorFeedback];
-        this.behaviorForm = { assignmentId: this.behaviorForm.assignmentId, studentProfileId: '', category: '', description: '', rating: 0 };
+        this.behaviorForm = { sessionIdx: this.behaviorForm.sessionIdx, studentProfileId: '', category: '', description: '', rating: 0 };
       },
       error: (err) => {
         this.behaviorSubmitting = false;

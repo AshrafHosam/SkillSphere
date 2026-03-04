@@ -22,47 +22,69 @@ public class TimetableController : ControllerBase
 
     private Guid TenantId => _currentUser.SchoolTenantId ?? throw new UnauthorizedAccessException("Tenant context required.");
 
+    // ---- Versions ----
     [HttpGet("versions")]
-    public async Task<IActionResult> GetVersions([FromQuery] Guid? semesterId, CancellationToken ct)
-        => Ok((await _timetableService.GetVersionsAsync(TenantId, semesterId, ct)).Data);
+    public async Task<IActionResult> GetVersions([FromQuery] Guid? groupId, [FromQuery] Guid? semesterId, CancellationToken ct)
+        => Ok((await _timetableService.GetVersionsAsync(TenantId, groupId, semesterId, ct)).Data);
 
     [HttpPost("versions")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateVersion([FromBody] CreateTimetableVersionRequest req, CancellationToken ct)
     {
         var r = await _timetableService.CreateVersionAsync(TenantId, req, ct);
         return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
     }
 
-    [HttpPost("versions/{id:guid}/publish")]
-    public async Task<IActionResult> PublishVersion(Guid id, CancellationToken ct)
-    {
-        var r = await _timetableService.PublishVersionAsync(id, ct);
-        return r.IsSuccess ? Ok() : BadRequest(new { error = r.Error });
-    }
-
+    // ---- Entries ----
     [HttpGet("versions/{versionId:guid}/entries")]
     public async Task<IActionResult> GetEntries(Guid versionId, CancellationToken ct)
         => Ok((await _timetableService.GetEntriesAsync(versionId, ct)).Data);
 
-    [HttpGet("teacher/{teacherProfileId:guid}")]
-    public async Task<IActionResult> GetTeacherTimetable(Guid teacherProfileId, [FromQuery] Guid semesterId, CancellationToken ct)
-        => Ok((await _timetableService.GetTeacherTimetableAsync(teacherProfileId, semesterId, ct)).Data);
-
     [HttpPost("entries")]
-    public async Task<IActionResult> CreateEntry([FromBody] CreateTimetableEntryRequest req, CancellationToken ct)
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> AddEntry([FromBody] AddTimetableEntryRequest req, CancellationToken ct)
     {
-        var r = await _timetableService.CreateEntryAsync(TenantId, req, ct);
+        var r = await _timetableService.AddEntryAsync(TenantId, req, ct);
         return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
     }
 
-    [HttpPost("entries/validate")]
-    public async Task<IActionResult> ValidateEntry([FromBody] CreateTimetableEntryRequest req, CancellationToken ct)
-        => Ok((await _timetableService.ValidateEntryAsync(TenantId, req, ct)).Data);
-
     [HttpDelete("entries/{id:guid}")]
-    public async Task<IActionResult> DeleteEntry(Guid id, CancellationToken ct)
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> RemoveEntry(Guid id, CancellationToken ct)
     {
-        var r = await _timetableService.DeleteEntryAsync(id, ct);
+        var r = await _timetableService.RemoveEntryAsync(id, ct);
         return r.IsSuccess ? NoContent() : BadRequest(new { error = r.Error });
     }
+
+    // ---- Validation & Publication ----
+    [HttpPost("versions/{id:guid}/validate")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> Validate(Guid id, CancellationToken ct)
+        => Ok((await _timetableService.ValidateForPublicationAsync(id, ct)).Data);
+
+    [HttpPost("versions/{id:guid}/publish")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> Publish(Guid id, CancellationToken ct)
+    {
+        var publishedBy = _currentUser.Email ?? "system";
+        var r = await _timetableService.PublishAsync(id, publishedBy, ct);
+        return r.IsSuccess ? Ok() : BadRequest(new { error = r.Error });
+    }
+
+    [HttpPost("versions/{id:guid}/archive")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> Archive(Guid id, CancellationToken ct)
+    {
+        var r = await _timetableService.ArchiveAsync(id, ct);
+        return r.IsSuccess ? Ok() : BadRequest(new { error = r.Error });
+    }
+
+    // ---- Schedules ----
+    [HttpGet("teacher/{teacherProfileId:guid}")]
+    public async Task<IActionResult> GetTeacherSchedule(Guid teacherProfileId, [FromQuery] Guid semesterId, CancellationToken ct)
+        => Ok((await _timetableService.GetTeacherScheduleAsync(teacherProfileId, semesterId, ct)).Data);
+
+    [HttpGet("group/{groupId:guid}")]
+    public async Task<IActionResult> GetGroupSchedule(Guid groupId, [FromQuery] Guid semesterId, CancellationToken ct)
+        => Ok((await _timetableService.GetGroupScheduleAsync(groupId, semesterId, ct)).Data);
 }

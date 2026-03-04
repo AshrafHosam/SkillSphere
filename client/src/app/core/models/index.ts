@@ -13,7 +13,7 @@ export interface AdminDashboardDto {
 
 export interface ComplianceHeatmapItem {
   gradeName: string;
-  className: string;
+  groupName: string;
   attendanceRate: number;
   reportRate: number;
 }
@@ -50,11 +50,11 @@ export interface TeacherDashboardDto {
 export interface TodaySessionDto {
   timetableEntryId: string;
   subjectName: string;
-  className: string;
+  groupName: string;
   gradeName: string;
   startTime: string;
   endTime: string;
-  room?: string;
+  roomName?: string;
   attendanceSubmitted: boolean;
 }
 
@@ -79,7 +79,7 @@ export interface StudentCardDto {
   studentProfileId: string;
   studentName: string;
   gradeName: string;
-  className: string;
+  groupName: string;
   totalWeeklyReports: number;
   averageGrade?: number;
 }

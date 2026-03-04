@@ -104,9 +104,13 @@ public class WeeklyReportService : IWeeklyReportService
         var result = new List<WeeklyReportComplianceDto>();
         foreach (var teacher in teachers)
         {
-            var assignedStudentCount = await _db.TeacherAssignments
-                .Where(ta => ta.TeacherProfileId == teacher.Id && ta.SemesterId == semesterId && ta.IsActive)
-                .SelectMany(ta => _db.StudentAssignments.Where(sa => sa.ClassSectionId == ta.ClassSectionId && sa.SemesterId == ta.SemesterId && sa.IsActive))
+            // Count distinct students in groups where this teacher has published timetable entries
+            var assignedStudentCount = await _db.TimetableEntries
+                .Where(e => e.TeacherProfileId == teacher.Id
+                    && e.TimetableVersion.SemesterId == semesterId
+                    && e.TimetableVersion.Status == TimetableStatus.Published)
+                .Select(e => e.TimetableVersion.GroupId).Distinct()
+                .SelectMany(gId => _db.StudentAssignments.Where(sa => sa.GroupId == gId && sa.SemesterId == semesterId && sa.IsActive))
                 .Select(sa => sa.StudentProfileId).Distinct().CountAsync(ct);
 
             var submitted = await _db.WeeklyReports

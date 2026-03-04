@@ -12,7 +12,7 @@ public class Semester : TenantEntity
 
     // Navigation
     public ICollection<StudentAssignment> StudentAssignments { get; set; } = [];
-    public ICollection<TeacherAssignment> TeacherAssignments { get; set; } = [];
+    public ICollection<CurriculumContract> CurriculumContracts { get; set; } = [];
     public ICollection<TimetableVersion> TimetableVersions { get; set; } = [];
     public ICollection<WeeklyReport> WeeklyReports { get; set; } = [];
 }

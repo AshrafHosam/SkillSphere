@@ -14,8 +14,6 @@ public class DashboardService : IDashboardService
 
     public async Task<Result<AdminDashboardDto>> GetAdminDashboardAsync(Guid tenantId, CancellationToken ct)
     {
-        var currentSemester = await _db.Semesters.FirstOrDefaultAsync(s => s.SchoolTenantId == tenantId && s.IsCurrent, ct);
-
         var totalTeachers = await _db.TeacherProfiles.CountAsync(t => t.SchoolTenantId == tenantId, ct);
         var totalStudents = await _db.StudentProfiles.CountAsync(s => s.SchoolTenantId == tenantId, ct);
         var totalParents = await _db.ParentProfiles.CountAsync(p => p.SchoolTenantId == tenantId, ct);
@@ -49,14 +47,24 @@ public class DashboardService : IDashboardService
         var unresolvedReports = await _db.InternalReports.CountAsync(r =>
             r.SchoolTenantId == tenantId && r.Status != InternalReportStatus.Resolved && r.Status != InternalReportStatus.Closed && r.StudentProfileId != null, ct);
 
-        // Count teachers who haven't submitted attendance today
-        var totalTeacherAssignments = currentSemester != null
-            ? await _db.TeacherAssignments.CountAsync(ta => ta.SemesterId == currentSemester.Id && ta.IsActive, ct)
-            : 0;
-        var attendanceToday = currentSemester != null
-            ? await _db.AttendanceRecords.Where(a => a.SchoolTenantId == tenantId && a.Date.Date == DateTime.UtcNow.Date)
-                .Select(a => a.TeacherProfileId).Distinct().CountAsync(ct)
-            : 0;
+        // Count expected sessions from published timetable entries for today
+        var totalPublishedEntriesToday = 0;
+        var attendanceToday = 0;
+
+        if (currentSemester != null)
+        {
+            var today = DateTime.UtcNow.DayOfWeek;
+            totalPublishedEntriesToday = await _db.TimetableEntries
+                .Include(e => e.TimetableVersion)
+                .CountAsync(e => e.TimetableVersion.SemesterId == currentSemester.Id &&
+                                 e.TimetableVersion.Status == TimetableStatus.Published &&
+                                 e.DayOfWeek == today &&
+                                 e.SchoolTenantId == tenantId, ct);
+
+            attendanceToday = await _db.AttendanceRecords
+                .Where(a => a.SchoolTenantId == tenantId && a.Date.Date == DateTime.UtcNow.Date)
+                .Select(a => new { a.TeacherProfileId, a.SubjectId, a.GroupId }).Distinct().CountAsync(ct);
+        }
 
         // Count missing weekly reports for current week
         var missingReports = 0;
@@ -65,13 +73,22 @@ public class DashboardService : IDashboardService
             var weekNum = (int)((DateTime.UtcNow - currentSemester.StartDate).TotalDays / 7) + 1;
             var submittedReports = await _db.WeeklyReports.CountAsync(wr =>
                 wr.SemesterId == currentSemester.Id && wr.WeekNumber == weekNum && wr.Status >= WeeklyReportStatus.Submitted, ct);
-            var expectedReports = totalTeacherAssignments;
+
+            // Expected = unique teacher entries from published timetables
+            var expectedReports = currentSemester != null
+                ? await _db.TimetableEntries
+                    .Include(e => e.TimetableVersion)
+                    .Where(e => e.TimetableVersion.SemesterId == currentSemester.Id &&
+                                e.TimetableVersion.Status == TimetableStatus.Published &&
+                                e.SchoolTenantId == tenantId)
+                    .Select(e => e.TeacherProfileId).Distinct().CountAsync(ct)
+                : 0;
             missingReports = Math.Max(0, expectedReports - submittedReports);
         }
 
         return Result<ManagerDashboardDto>.Success(new ManagerDashboardDto
         {
-            MissingAttendance = Math.Max(0, totalTeacherAssignments - attendanceToday),
+            MissingAttendance = Math.Max(0, totalPublishedEntriesToday - attendanceToday),
             MissingWeeklyReports = missingReports,
             StudentRiskQueue = unresolvedReports
         });
@@ -83,30 +100,37 @@ public class DashboardService : IDashboardService
         if (currentSemester == null) return Result<TeacherDashboardDto>.Success(new TeacherDashboardDto());
 
         var today = DateTime.UtcNow.DayOfWeek;
-        var publishedVersion = await _db.TimetableVersions
-            .FirstOrDefaultAsync(v => v.SemesterId == currentSemester.Id && v.Status == TimetableStatus.Published, ct);
 
-        var todaySessions = new List<TodaySessionDto>();
-        if (publishedVersion != null)
-        {
-            todaySessions = await _db.TimetableEntries
-                .Include(e => e.Subject).Include(e => e.ClassSection).Include(e => e.Grade)
-                .Where(e => e.TimetableVersionId == publishedVersion.Id && e.TeacherProfileId == teacherProfileId && e.DayOfWeek == today)
-                .OrderBy(e => e.StartTime)
-                .Select(e => new TodaySessionDto
-                {
-                    TimetableEntryId = e.Id, SubjectName = e.Subject.Name,
-                    ClassName = e.ClassSection.Name, GradeName = e.Grade.Name,
-                    StartTime = e.StartTime, EndTime = e.EndTime, Room = e.Room,
-                    AttendanceSubmitted = _db.AttendanceRecords.Any(a =>
-                        a.TeacherProfileId == teacherProfileId && a.SubjectId == e.SubjectId &&
-                        a.ClassSectionId == e.ClassSectionId && a.Date.Date == DateTime.UtcNow.Date)
-                }).ToListAsync(ct);
-        }
+        // Query published timetable entries for this teacher today (across all groups)
+        var todaySessions = await _db.TimetableEntries
+            .Include(e => e.TimetableVersion).ThenInclude(v => v.Group).ThenInclude(g => g.Grade)
+            .Include(e => e.Subject).Include(e => e.Room).Include(e => e.PeriodDefinition)
+            .Where(e => e.TimetableVersion.SemesterId == currentSemester.Id &&
+                        e.TimetableVersion.Status == TimetableStatus.Published &&
+                        e.TeacherProfileId == teacherProfileId && e.DayOfWeek == today)
+            .OrderBy(e => e.PeriodDefinition.PeriodNumber)
+            .Select(e => new TodaySessionDto
+            {
+                TimetableEntryId = e.Id, SubjectName = e.Subject.Name,
+                GroupName = e.TimetableVersion.Group.Name,
+                GradeName = e.TimetableVersion.Group.Grade.Name,
+                StartTime = e.PeriodDefinition.StartTime, EndTime = e.PeriodDefinition.EndTime,
+                RoomName = e.Room.Name,
+                AttendanceSubmitted = _db.AttendanceRecords.Any(a =>
+                    a.TeacherProfileId == teacherProfileId && a.SubjectId == e.SubjectId &&
+                    a.GroupId == e.TimetableVersion.GroupId && a.Date.Date == DateTime.UtcNow.Date)
+            }).ToListAsync(ct);
 
-        var totalStudents = await _db.TeacherAssignments
-            .Where(ta => ta.TeacherProfileId == teacherProfileId && ta.SemesterId == currentSemester.Id && ta.IsActive)
-            .SelectMany(ta => _db.StudentAssignments.Where(sa => sa.ClassSectionId == ta.ClassSectionId && sa.SemesterId == ta.SemesterId && sa.IsActive))
+        // Total assigned students: from published entries → get groups → count student assignments
+        var groupIds = await _db.TimetableEntries
+            .Include(e => e.TimetableVersion)
+            .Where(e => e.TimetableVersion.SemesterId == currentSemester.Id &&
+                        e.TimetableVersion.Status == TimetableStatus.Published &&
+                        e.TeacherProfileId == teacherProfileId)
+            .Select(e => e.TimetableVersion.GroupId).Distinct().ToListAsync(ct);
+
+        var totalStudents = await _db.StudentAssignments
+            .Where(sa => groupIds.Contains(sa.GroupId) && sa.SemesterId == currentSemester.Id && sa.IsActive)
             .Select(sa => sa.StudentProfileId).Distinct().CountAsync(ct);
 
         return Result<TeacherDashboardDto>.Success(new TeacherDashboardDto
@@ -163,7 +187,7 @@ public class DashboardService : IDashboardService
         foreach (var link in links)
         {
             var assignment = await _db.StudentAssignments
-                .Include(sa => sa.Grade).Include(sa => sa.ClassSection)
+                .Include(sa => sa.Grade).Include(sa => sa.Group)
                 .Where(sa => sa.StudentProfileId == link.StudentProfileId && sa.IsActive)
                 .OrderByDescending(sa => sa.Semester.StartDate)
                 .FirstOrDefaultAsync(ct);
@@ -176,7 +200,7 @@ public class DashboardService : IDashboardService
                 StudentProfileId = link.StudentProfile.Id,
                 StudentName = $"{link.StudentProfile.User.FirstName} {link.StudentProfile.User.LastName}",
                 GradeName = assignment?.Grade?.Name ?? "",
-                ClassName = assignment?.ClassSection?.Name ?? "",
+                GroupName = assignment?.Group?.Name ?? "",
                 TotalWeeklyReports = reportCount,
                 AverageGrade = avgGrade
             });

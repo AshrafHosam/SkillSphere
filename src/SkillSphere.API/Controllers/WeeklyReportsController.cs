@@ -9,7 +9,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/weekly-reports")]
-[Authorize]
+[Authorize(Roles = "Teacher,TeacherSupervisor,SchoolManager,SchoolAdmin,Parent")]
 public class WeeklyReportsController : ControllerBase
 {
     private readonly IWeeklyReportService _reportService;
@@ -37,6 +37,7 @@ public class WeeklyReportsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> Create([FromQuery] Guid teacherProfileId,
         [FromBody] CreateWeeklyReportRequest req, CancellationToken ct)
     {

@@ -1,12 +1,14 @@
+import { RoomType } from './enums';
+
 export interface GradeDto {
   id: string;
   name: string;
   orderIndex: number;
   isActive: boolean;
-  classCount: number;
+  groupCount: number;
 }
 
-export interface ClassSectionDto {
+export interface GroupDto {
   id: string;
   name: string;
   gradeId: string;
@@ -22,6 +24,7 @@ export interface SubjectDto {
   code?: string;
   departmentId?: string;
   departmentName?: string;
+  requiredRoomType?: RoomType;
   isActive: boolean;
 }
 
@@ -48,24 +51,53 @@ export interface StudentAssignmentDto {
   studentName: string;
   gradeId: string;
   gradeName: string;
-  classSectionId: string;
-  classSectionName: string;
+  groupId: string;
+  groupName: string;
   semesterId: string;
   semesterName: string;
   isActive: boolean;
 }
 
-export interface TeacherAssignmentDto {
+// New entities
+export interface PeriodDefinitionDto {
+  id: string;
+  periodNumber: number;
+  label: string;
+  startTime: string;
+  endTime: string;
+  isBreak: boolean;
+  isActive: boolean;
+}
+
+export interface RoomDto {
+  id: string;
+  name: string;
+  code: string;
+  roomType: RoomType;
+  capacity: number;
+  building?: string;
+  floor?: number;
+  isActive: boolean;
+}
+
+export interface CurriculumContractDto {
+  id: string;
+  gradeId: string;
+  gradeName: string;
+  semesterId: string;
+  semesterName: string;
+  subjectId: string;
+  subjectName: string;
+  periodsPerWeek: number;
+}
+
+export interface TeacherSubjectLinkDto {
   id: string;
   teacherProfileId: string;
   teacherName: string;
   subjectId: string;
   subjectName: string;
-  classSectionId: string;
-  classSectionName: string;
-  gradeId: string;
-  gradeName: string;
-  semesterId: string;
-  semesterName: string;
+  gradeId?: string;
+  gradeName?: string;
   isActive: boolean;
 }

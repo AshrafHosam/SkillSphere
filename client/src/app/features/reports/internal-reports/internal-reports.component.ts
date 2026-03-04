@@ -1,11 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InternalReportService, AssignmentService, UserService } from '@core/services/data.service';
+import { InternalReportService, AssignmentService, TimetableService, AcademicService } from '@core/services/data.service';
 import { AuthService } from '@core/services/auth.service';
 import { LocalDatePipe } from '@core/pipes/local-date.pipe';
-import { TeacherAssignmentDto, StudentAssignmentDto, CreateInternalReportRequest } from '@core/models';
+import { StudentAssignmentDto, CreateInternalReportRequest } from '@core/models';
 import { InternalReportCategory } from '@core/models/enums';
+
+interface SessionOption {
+  label: string;
+  subjectId: string;
+  groupId: string;
+  semesterId: string;
+}
 
 @Component({
   selector: 'app-internal-reports',
@@ -36,11 +43,11 @@ import { InternalReportCategory } from '@core/models/enums';
             </select>
           </div>
           <div class="form-group">
-            <label>Student (optional — select class first)</label>
-            <select [(ngModel)]="createForm.assignmentId" (ngModelChange)="onCreateAssignmentChange()">
-              <option value="">-- Select class --</option>
-              <option *ngFor="let a of teacherAssignments" [value]="a.id">
-                {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}}
+            <label>Student (optional — select session first)</label>
+            <select [(ngModel)]="createForm.sessionIdx" (ngModelChange)="onCreateSessionChange()">
+              <option [ngValue]="-1">-- Select session --</option>
+              <option *ngFor="let s of sessionOptions; let i = index" [ngValue]="i">
+                {{s.label}}
               </option>
             </select>
           </div>
@@ -147,12 +154,12 @@ export class InternalReportsComponent implements OnInit {
   selectedReport: any = null;
   newComment = '';
   isTeacher = false;
-  teacherAssignments: TeacherAssignmentDto[] = [];
+  sessionOptions: SessionOption[] = [];
   createStudents: StudentAssignmentDto[] = [];
   categories = Object.values(InternalReportCategory);
 
   showCreateForm = false;
-  createForm = { category: '', assignmentId: '', studentProfileId: '', title: '', description: '' };
+  createForm = { category: '', sessionIdx: -1 as number, studentProfileId: '', title: '', description: '' };
   createSubmitting = false;
   createSuccess = false;
   createError = '';
@@ -160,6 +167,8 @@ export class InternalReportsComponent implements OnInit {
   constructor(
     private reportSvc: InternalReportService,
     private assignmentSvc: AssignmentService,
+    private timetableSvc: TimetableService,
+    private academicSvc: AcademicService,
     private auth: AuthService
   ) {}
 
@@ -170,20 +179,41 @@ export class InternalReportsComponent implements OnInit {
     if (this.isTeacher) {
       const profileId = this.auth.profileId;
       if (profileId) {
-        this.assignmentSvc.getTeacherAssignments({ teacherId: profileId }).subscribe(
-          a => this.teacherAssignments = a.filter(x => x.isActive)
-        );
+        this.academicSvc.getSemesters().subscribe(semesters => {
+          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          if (activeSemester) {
+            this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
+              this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
+                const seen = new Set<string>();
+                this.sessionOptions = [];
+                for (const e of entries) {
+                  const key = `${e.subjectId}_${e.timetableVersionId}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    const version = versions.find(v => v.id === e.timetableVersionId);
+                    this.sessionOptions.push({
+                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'}`,
+                      subjectId: e.subjectId,
+                      groupId: version?.groupId ?? '',
+                      semesterId: activeSemester.id
+                    });
+                  }
+                }
+              });
+            });
+          }
+        });
       }
     }
   }
 
-  onCreateAssignmentChange() {
+  onCreateSessionChange() {
     this.createStudents = [];
     this.createForm.studentProfileId = '';
-    if (!this.createForm.assignmentId) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.createForm.assignmentId);
-    if (!assignment) return;
-    this.assignmentSvc.getStudentAssignments({ classId: assignment.classSectionId, semesterId: assignment.semesterId })
+    if (this.createForm.sessionIdx < 0) return;
+    const session = this.sessionOptions[this.createForm.sessionIdx];
+    if (!session || !session.groupId) return;
+    this.assignmentSvc.getStudentAssignments({ groupId: session.groupId, semesterId: session.semesterId })
       .subscribe(s => this.createStudents = s.filter(x => x.isActive));
   }
 
@@ -209,7 +239,7 @@ export class InternalReportsComponent implements OnInit {
         this.createSubmitting = false;
         this.createSuccess = true;
         this.reports = [report, ...this.reports];
-        this.createForm = { category: '', assignmentId: '', studentProfileId: '', title: '', description: '' };
+        this.createForm = { category: '', sessionIdx: -1 as number, studentProfileId: '', title: '', description: '' };
       },
       error: (err) => {
         this.createSubmitting = false;

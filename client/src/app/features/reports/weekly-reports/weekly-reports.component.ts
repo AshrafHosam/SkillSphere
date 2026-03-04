@@ -1,16 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { WeeklyReportService, AssignmentService } from '@core/services/data.service';
+import { WeeklyReportService, AssignmentService, TimetableService, AcademicService } from '@core/services/data.service';
 import { AuthService } from '@core/services/auth.service';
 import { LocalDatePipe } from '@core/pipes/local-date.pipe';
-import { TeacherAssignmentDto, StudentAssignmentDto, WeeklyReportDto, CreateWeeklyReportRequest, WeeklyReportItemRequest } from '@core/models';
+import { StudentAssignmentDto, WeeklyReportDto, CreateWeeklyReportRequest, WeeklyReportItemRequest } from '@core/models';
 
 interface ReportItemEntry {
   attributeName: string;
   value: string;
   numericValue: number | null;
   comments: string;
+}
+
+interface SessionOption {
+  label: string;
+  subjectId: string;
+  groupId: string;
+  semesterId: string;
 }
 
 @Component({
@@ -35,11 +42,11 @@ interface ReportItemEntry {
       <div class="card-body">
         <div class="form-grid">
           <div class="form-group">
-            <label>Assignment (Subject / Class)</label>
-            <select [(ngModel)]="createForm.assignmentId" (ngModelChange)="onCreateAssignmentChange()">
-              <option value="">-- Select --</option>
-              <option *ngFor="let a of teacherAssignments" [value]="a.id">
-                {{a.subjectName}} — {{a.gradeName}} / {{a.classSectionName}} ({{a.semesterName}})
+            <label>Session (Subject / Group)</label>
+            <select [(ngModel)]="createForm.sessionIdx" (ngModelChange)="onCreateSessionChange()">
+              <option [ngValue]="-1">-- Select --</option>
+              <option *ngFor="let s of sessionOptions; let i = index" [ngValue]="i">
+                {{s.label}}
               </option>
             </select>
           </div>
@@ -172,12 +179,12 @@ export class WeeklyReportsComponent implements OnInit {
   reports: WeeklyReportDto[] = [];
   selectedReport: WeeklyReportDto | null = null;
   isTeacher = false;
-  teacherAssignments: TeacherAssignmentDto[] = [];
+  sessionOptions: SessionOption[] = [];
   createStudents: StudentAssignmentDto[] = [];
 
   showCreateForm = false;
   createForm = {
-    assignmentId: '',
+    sessionIdx: -1 as number,
     studentProfileId: '',
     weekNumber: 1,
     weekStartDate: '',
@@ -204,6 +211,8 @@ export class WeeklyReportsComponent implements OnInit {
   constructor(
     private reportSvc: WeeklyReportService,
     private assignmentSvc: AssignmentService,
+    private timetableSvc: TimetableService,
+    private academicSvc: AcademicService,
     private auth: AuthService
   ) {}
 
@@ -214,9 +223,30 @@ export class WeeklyReportsComponent implements OnInit {
     if (this.isTeacher) {
       const profileId = this.auth.profileId;
       if (profileId) {
-        this.assignmentSvc.getTeacherAssignments({ teacherId: profileId }).subscribe(
-          a => this.teacherAssignments = a.filter(x => x.isActive)
-        );
+        this.academicSvc.getSemesters().subscribe(semesters => {
+          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          if (activeSemester) {
+            this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
+              this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
+                const seen = new Set<string>();
+                this.sessionOptions = [];
+                for (const e of entries) {
+                  const key = `${e.subjectId}_${e.timetableVersionId}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    const version = versions.find(v => v.id === e.timetableVersionId);
+                    this.sessionOptions.push({
+                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'}`,
+                      subjectId: e.subjectId,
+                      groupId: version?.groupId ?? '',
+                      semesterId: activeSemester.id
+                    });
+                  }
+                }
+              });
+            });
+          }
+        });
       }
       // Pre-populate current week info
       const now = new Date();
@@ -235,13 +265,13 @@ export class WeeklyReportsComponent implements OnInit {
     }
   }
 
-  onCreateAssignmentChange() {
+  onCreateSessionChange() {
     this.createStudents = [];
     this.createForm.studentProfileId = '';
-    if (!this.createForm.assignmentId) return;
-    const assignment = this.teacherAssignments.find(a => a.id === this.createForm.assignmentId);
-    if (!assignment) return;
-    this.assignmentSvc.getStudentAssignments({ classId: assignment.classSectionId, semesterId: assignment.semesterId })
+    if (this.createForm.sessionIdx < 0) return;
+    const session = this.sessionOptions[this.createForm.sessionIdx];
+    if (!session || !session.groupId) return;
+    this.assignmentSvc.getStudentAssignments({ groupId: session.groupId, semesterId: session.semesterId })
       .subscribe(s => this.createStudents = s.filter(x => x.isActive));
   }
 
@@ -254,11 +284,12 @@ export class WeeklyReportsComponent implements OnInit {
   }
 
   createReport() {
-    const assignment = this.teacherAssignments.find(a => a.id === this.createForm.assignmentId);
-    if (!assignment || !this.createForm.studentProfileId || this.createForm.items.length === 0) {
-      this.createError = 'Please fill in assignment, student, and at least one report item.';
+    if (this.createForm.sessionIdx < 0 || !this.createForm.studentProfileId || this.createForm.items.length === 0) {
+      this.createError = 'Please fill in session, student, and at least one report item.';
       return;
     }
+    const session = this.sessionOptions[this.createForm.sessionIdx];
+    if (!session) return;
 
     this.createSubmitting = true;
     this.createSuccess = false;
@@ -266,8 +297,8 @@ export class WeeklyReportsComponent implements OnInit {
 
     const req: CreateWeeklyReportRequest = {
       studentProfileId: this.createForm.studentProfileId,
-      subjectId: assignment.subjectId,
-      semesterId: assignment.semesterId,
+      subjectId: session.subjectId,
+      semesterId: session.semesterId,
       weekNumber: this.createForm.weekNumber,
       weekStartDate: this.createForm.weekStartDate,
       weekEndDate: this.createForm.weekEndDate,
