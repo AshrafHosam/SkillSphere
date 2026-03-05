@@ -20,8 +20,17 @@ public class AttendanceRecord : TenantEntity
     public Guid SemesterId { get; set; }
     public Semester Semester { get; set; } = null!;
 
+    public Guid? TimetableEntryId { get; set; }
+    public TimetableEntry? TimetableEntry { get; set; }
+
     public DateTime Date { get; set; }
     public TimeSpan? SessionTime { get; set; }
     public AttendanceStatus Status { get; set; }
+    public SubmissionStatus SubmissionStatus { get; set; } = SubmissionStatus.Draft;
     public string? Notes { get; set; }
+
+    public DateTime? SubmittedAt { get; set; }
+    public DateTime? LastEditedAt { get; set; }
+    public string? LastEditedBy { get; set; }
+    public string? EditReason { get; set; }
 }

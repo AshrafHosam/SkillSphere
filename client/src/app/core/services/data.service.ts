@@ -10,6 +10,7 @@ import {
   StudentAssignmentDto, PeriodDefinitionDto, RoomDto, CurriculumContractDto, TeacherSubjectLinkDto,
   TimetableVersionDto, TimetableEntryDto, CreateTimetableVersionRequest, AddTimetableEntryRequest, TimetableValidationError,
   AttendanceRecordDto, SubmitAttendanceRequest, AttendanceComplianceDto,
+  UpdateAttendanceEntryRequest, GrantEditPermissionRequest, AttendanceEditPermissionDto, SessionComplianceDto,
   GradeRecordDto, CreateGradeRecordRequest, BehaviorFeedbackDto, CreateBehaviorFeedbackRequest,
   WeeklyReportDto, CreateWeeklyReportRequest, WeeklyReportComplianceDto,
   InternalReportDto, CreateInternalReportRequest, AddInternalReportCommentRequest, EscalateInternalReportRequest,
@@ -107,8 +108,11 @@ export class TimetableService {
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
   constructor(private api: ApiService) {}
-  submit(teacherProfileId: string, req: SubmitAttendanceRequest): Observable<void> {
-    return this.api.post(`attendance/submit?teacherProfileId=${teacherProfileId}`, req);
+  submit(req: SubmitAttendanceRequest): Observable<void> {
+    return this.api.post('attendance/submit', req);
+  }
+  update(id: string, req: UpdateAttendanceEntryRequest): Observable<void> {
+    return this.api.put(`attendance/${id}`, req);
   }
   getAttendance(date: string, groupId?: string, subjectId?: string): Observable<AttendanceRecordDto[]> {
     return this.api.get('attendance', { date, groupId, subjectId });
@@ -118,6 +122,18 @@ export class AttendanceService {
   }
   getCompliance(semesterId: string): Observable<AttendanceComplianceDto[]> {
     return this.api.get('attendance/compliance', { semesterId });
+  }
+  getSessionCompliance(semesterId: string, date?: string, teacherProfileId?: string): Observable<SessionComplianceDto[]> {
+    return this.api.get('attendance/session-compliance', { semesterId, date, teacherProfileId });
+  }
+  grantEditPermission(req: GrantEditPermissionRequest): Observable<AttendanceEditPermissionDto> {
+    return this.api.post('attendance/edit-permissions', req);
+  }
+  revokeEditPermission(id: string): Observable<void> {
+    return this.api.delete(`attendance/edit-permissions/${id}`);
+  }
+  getEditPermissions(teacherProfileId?: string): Observable<AttendanceEditPermissionDto[]> {
+    return this.api.get('attendance/edit-permissions', { teacherProfileId });
   }
 }
 

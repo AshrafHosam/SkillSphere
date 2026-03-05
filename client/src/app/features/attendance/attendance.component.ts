@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AttendanceService, AssignmentService, TimetableService, AcademicService } from '@core/services/data.service';
 import { AuthService } from '@core/services/auth.service';
-import { TimetableEntryDto, AttendanceRecordDto, SubmitAttendanceRequest } from '@core/models';
-import { AttendanceStatus } from '@core/models/enums';
+import { TimetableEntryDto, AttendanceRecordDto, SubmitAttendanceRequest, SessionComplianceDto, AttendanceEditPermissionDto, AttendanceComplianceDto, UpdateAttendanceEntryRequest, GrantEditPermissionRequest } from '@core/models';
+import { AttendanceStatus, SubmissionStatus } from '@core/models/enums';
 
 interface StudentEntry {
   studentProfileId: string;
@@ -18,6 +18,7 @@ interface SessionOption {
   subjectId: string;
   groupId: string;
   semesterId: string;
+  timetableEntryId?: string;
 }
 
 @Component({
@@ -27,9 +28,12 @@ interface SessionOption {
   template: `
     <div class="page-header">
       <h1>Attendance</h1>
-      <div class="tabs" *ngIf="isTeacher">
-        <button class="tab-btn" [class.active]="mode==='submit'" (click)="mode='submit'">Submit Attendance</button>
+      <div class="tabs">
+        <button class="tab-btn" *ngIf="isTeacher" [class.active]="mode==='submit'" (click)="mode='submit'">Submit</button>
         <button class="tab-btn" [class.active]="mode==='view'" (click)="mode='view'">View Records</button>
+        <button class="tab-btn" *ngIf="isSupervisor || isAdmin || isManager" [class.active]="mode==='compliance'" (click)="mode='compliance'; loadCompliance()">Compliance</button>
+        <button class="tab-btn" *ngIf="isSupervisor || isAdmin" [class.active]="mode==='session'" (click)="mode='session'; loadSessionCompliance()">Session Status</button>
+        <button class="tab-btn" *ngIf="isAdmin" [class.active]="mode==='permissions'" (click)="mode='permissions'; loadPermissions()">Edit Permissions</button>
       </div>
     </div>
 
@@ -63,8 +67,8 @@ interface SessionOption {
         </div>
       </div>
 
-      <div class="alert alert-danger" *ngIf="alreadySubmitted">
-        Attendance for this group/subject/date has already been submitted.
+      <div class="alert alert-warning" *ngIf="alreadySubmitted && !editingRecord">
+        Attendance has been submitted for this session. You may edit within the grace period.
       </div>
 
       <div class="card" *ngIf="studentEntries.length && !alreadySubmitted">
@@ -93,22 +97,21 @@ interface SessionOption {
           </div>
         </div>
         <div class="card-footer" style="text-align:right">
-          <button class="btn btn-primary" (click)="submitAttendance()" [disabled]="submitting">
+          <button class="btn btn-outline-secondary" (click)="submitAttendance(true)" [disabled]="submitting" style="margin-right:8px">
+            Save as Draft
+          </button>
+          <button class="btn btn-primary" (click)="submitAttendance(false)" [disabled]="submitting">
             {{submitting ? 'Submitting...' : 'Submit Attendance'}}
           </button>
         </div>
       </div>
 
-      <div class="alert alert-success" *ngIf="submitSuccess">
-        Attendance submitted successfully!
-      </div>
-      <div class="alert alert-danger" *ngIf="submitError">
-        {{submitError}}
-      </div>
+      <div class="alert alert-success" *ngIf="submitSuccess">Attendance submitted successfully!</div>
+      <div class="alert alert-danger" *ngIf="submitError">{{submitError}}</div>
     </ng-container>
 
     <!-- ========== VIEW ATTENDANCE RECORDS ========== -->
-    <ng-container *ngIf="!isTeacher || mode==='view'">
+    <ng-container *ngIf="mode==='view'">
       <div class="card">
         <div class="card-header card-header-info">
           <h4 class="card-title">Attendance Records</h4>
@@ -122,12 +125,22 @@ interface SessionOption {
 
           <div class="table-responsive" *ngIf="records.length">
             <table class="table">
-              <thead><tr><th>Student</th><th>Subject</th><th>Group</th><th>Status</th><th>Notes</th></tr></thead>
+              <thead><tr>
+                <th>Student</th><th>Subject</th><th>Group</th><th>Period</th><th>Status</th><th>Submission</th><th>Notes</th>
+                <th *ngIf="isAdmin || isTeacher">Actions</th>
+              </tr></thead>
               <tbody>
                 <tr *ngFor="let r of records">
                   <td>{{r.studentName}}</td><td>{{r.subjectName}}</td><td>{{r.groupName}}</td>
+                  <td>{{r.periodLabel || '-'}}</td>
                   <td><span [class]="'badge-' + r.status.toLowerCase()">{{r.status}}</span></td>
+                  <td>
+                    <span [class]="'badge-' + getSubmissionBadge(r.submissionStatus)">{{r.submissionStatus}}</span>
+                  </td>
                   <td>{{r.notes}}</td>
+                  <td *ngIf="isAdmin || isTeacher">
+                    <button class="btn btn-sm btn-outline-primary" (click)="startEdit(r)" *ngIf="r.submissionStatus !== 'Draft'">Edit</button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -138,10 +151,198 @@ interface SessionOption {
           </div>
         </div>
       </div>
+
+      <!-- Edit Dialog -->
+      <div class="card" *ngIf="editingRecord">
+        <div class="card-header card-header-warning">
+          <h4 class="card-title">Edit Attendance Record</h4>
+        </div>
+        <div class="card-body">
+          <p><strong>Student:</strong> {{editingRecord.studentName}} | <strong>Subject:</strong> {{editingRecord.subjectName}}</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Status</label>
+              <select [(ngModel)]="editStatus">
+                <option *ngFor="let st of statuses" [value]="st">{{st}}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notes</label>
+              <input type="text" [(ngModel)]="editNotes" />
+            </div>
+            <div class="form-group">
+              <label>Reason for Change *</label>
+              <input type="text" [(ngModel)]="editReason" placeholder="Required" />
+            </div>
+          </div>
+        </div>
+        <div class="card-footer" style="text-align:right">
+          <button class="btn btn-outline-secondary" (click)="editingRecord=null" style="margin-right:8px">Cancel</button>
+          <button class="btn btn-warning" (click)="saveEdit()" [disabled]="!editReason || submitting">
+            {{submitting ? 'Saving...' : 'Save Changes'}}
+          </button>
+        </div>
+        <div class="alert alert-danger" *ngIf="editError" style="margin:0 16px 16px">{{editError}}</div>
+      </div>
+    </ng-container>
+
+    <!-- ========== COMPLIANCE (Supervisor / Admin / Manager) ========== -->
+    <ng-container *ngIf="mode==='compliance'">
+      <div class="card">
+        <div class="card-header card-header-primary">
+          <h4 class="card-title">Teacher Compliance</h4>
+          <p class="card-category">Attendance submission compliance by teacher</p>
+        </div>
+        <div class="card-body">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Semester</label>
+              <select [(ngModel)]="complianceSemesterId" (ngModelChange)="loadCompliance()">
+                <option *ngFor="let s of semesters" [value]="s.id">{{s.name}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive" *ngIf="complianceData.length">
+            <table class="table">
+              <thead><tr><th>Teacher</th><th>Expected</th><th>Completed</th><th>Rate</th><th>Late</th><th>Missing</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let c of complianceData">
+                  <td>{{c.teacherName}}</td>
+                  <td>{{c.totalExpectedSessions}}</td>
+                  <td>{{c.completedSessions}}</td>
+                  <td>{{c.completionPercentage}}%</td>
+                  <td><span class="badge-late">{{c.lateDays}}</span></td>
+                  <td><span class="badge-absent">{{c.missingSessions}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ========== SESSION COMPLIANCE (Supervisor / Admin) ========== -->
+    <ng-container *ngIf="mode==='session'">
+      <div class="card">
+        <div class="card-header card-header-info">
+          <h4 class="card-title">Session Submission Status</h4>
+          <p class="card-category">Per-session submission grid</p>
+        </div>
+        <div class="card-body">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Semester</label>
+              <select [(ngModel)]="complianceSemesterId" (ngModelChange)="loadSessionCompliance()">
+                <option *ngFor="let s of semesters" [value]="s.id">{{s.name}}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" [(ngModel)]="sessionDate" (ngModelChange)="loadSessionCompliance()" />
+            </div>
+            <div class="form-group" style="align-self:end">
+              <button class="btn btn-primary btn-sm" (click)="loadSessionCompliance()">Refresh</button>
+            </div>
+          </div>
+          <div class="table-responsive" *ngIf="sessionData.length">
+            <table class="table">
+              <thead><tr><th>Day</th><th>Period</th><th>Subject</th><th>Group</th><th>Teacher</th><th>Status</th><th>Submitted At</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let s of sessionData" [class]="getSessionRowClass(s.submissionStatus)">
+                  <td>{{getDayName(s.dayOfWeek)}}</td>
+                  <td>{{s.periodLabel}}</td>
+                  <td>{{s.subjectName}}</td>
+                  <td>{{s.groupName}}</td>
+                  <td>{{s.teacherName}}</td>
+                  <td><span [class]="'badge-' + getSessionBadge(s.submissionStatus)">{{s.submissionStatus}}</span></td>
+                  <td>{{s.submittedAt ? (s.submittedAt | date:'short') : '-'}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-row" *ngIf="!sessionData.length">
+            <p>No session data. Select a semester and date.</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ========== EDIT PERMISSIONS (Admin) ========== -->
+    <ng-container *ngIf="mode==='permissions' && isAdmin">
+      <div class="card">
+        <div class="card-header card-header-warning">
+          <h4 class="card-title">Edit Permissions</h4>
+          <p class="card-category">Grant or revoke teacher edit access</p>
+        </div>
+        <div class="card-body">
+          <div class="filter-row" style="margin-bottom:16px">
+            <button class="btn btn-primary btn-sm" (click)="showGrantForm=!showGrantForm">
+              {{showGrantForm ? 'Cancel' : '+ Grant Permission'}}
+            </button>
+          </div>
+
+          <div *ngIf="showGrantForm" class="card" style="border:1px solid #ccc; padding:16px; margin-bottom:16px">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Teacher Profile ID</label>
+                <input type="text" [(ngModel)]="grantReq.teacherProfileId" />
+              </div>
+              <div class="form-group">
+                <label>Timetable Entry ID (optional)</label>
+                <input type="text" [(ngModel)]="grantReq.timetableEntryId" />
+              </div>
+              <div class="form-group">
+                <label>Valid From</label>
+                <input type="datetime-local" [(ngModel)]="grantReq.validFrom" />
+              </div>
+              <div class="form-group">
+                <label>Valid Until</label>
+                <input type="datetime-local" [(ngModel)]="grantReq.validUntil" />
+              </div>
+              <div class="form-group">
+                <label>Reason *</label>
+                <input type="text" [(ngModel)]="grantReq.reason" />
+              </div>
+            </div>
+            <button class="btn btn-primary" (click)="grantPermission()" [disabled]="!grantReq.teacherProfileId || !grantReq.reason || submitting">
+              Grant
+            </button>
+          </div>
+
+          <div class="table-responsive" *ngIf="permissions.length">
+            <table class="table">
+              <thead><tr><th>Teacher</th><th>Session</th><th>From</th><th>Until</th><th>Granted By</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr *ngFor="let p of permissions">
+                  <td>{{p.teacherName}}</td>
+                  <td>{{p.sessionLabel || 'All'}}</td>
+                  <td>{{p.validFrom | date:'short'}}</td>
+                  <td>{{p.validUntil | date:'short'}}</td>
+                  <td>{{p.grantedByName}}</td>
+                  <td>{{p.reason}}</td>
+                  <td>
+                    <span *ngIf="p.isRevoked" class="badge-absent">Revoked</span>
+                    <span *ngIf="!p.isRevoked" class="badge-present">Active</span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger" *ngIf="!p.isRevoked" (click)="revokePermission(p.id)">Revoke</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-row" *ngIf="!permissions.length">
+            <p>No edit permissions found.</p>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-danger" *ngIf="permissionError">{{permissionError}}</div>
     </ng-container>
   `,
   styles: [`
     :host { display: block; }
+    .session-missing { background-color: #fff3f3; }
+    .session-late { background-color: #ffffee; }
   `]
 })
 export class AttendanceComponent implements OnInit {
@@ -149,9 +350,15 @@ export class AttendanceComponent implements OnInit {
   records: AttendanceRecordDto[] = [];
   filterDate = '';
 
-  // Submit mode (teacher)
-  mode: 'submit' | 'view' = 'submit';
+  // Tab mode
+  mode: 'submit' | 'view' | 'compliance' | 'session' | 'permissions' = 'submit';
   isTeacher = false;
+  isSupervisor = false;
+  isAdmin = false;
+  isManager = false;
+  isParent = false;
+
+  // Submit mode (teacher)
   sessionOptions: SessionOption[] = [];
   selectedSessionIdx = -1;
   submitDate = '';
@@ -163,7 +370,28 @@ export class AttendanceComponent implements OnInit {
   submitError = '';
   alreadySubmitted = false;
 
-  private semesters: any[] = [];
+  // Edit mode
+  editingRecord: AttendanceRecordDto | null = null;
+  editStatus: AttendanceStatus = AttendanceStatus.Present;
+  editNotes = '';
+  editReason = '';
+  editError = '';
+
+  // Compliance
+  complianceData: AttendanceComplianceDto[] = [];
+  complianceSemesterId = '';
+
+  // Session compliance
+  sessionData: SessionComplianceDto[] = [];
+  sessionDate = '';
+
+  // Permissions (Admin)
+  permissions: AttendanceEditPermissionDto[] = [];
+  showGrantForm = false;
+  grantReq: GrantEditPermissionRequest = { teacherProfileId: '', validFrom: '', validUntil: '', reason: '' };
+  permissionError = '';
+
+  semesters: any[] = [];
 
   constructor(
     private attendanceSvc: AttendanceService,
@@ -177,34 +405,51 @@ export class AttendanceComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     this.filterDate = today;
     this.submitDate = today;
+    this.sessionDate = today;
 
     const role = this.auth.userRole;
     this.isTeacher = role === 'Teacher';
+    this.isSupervisor = role === 'TeacherSupervisor';
+    this.isAdmin = role === 'SchoolAdmin';
+    this.isManager = role === 'SchoolManager';
+    this.isParent = role === 'Parent';
+
+    // Set default tab based on role
+    if (this.isTeacher) this.mode = 'submit';
+    else if (this.isSupervisor) this.mode = 'session';
+    else if (this.isAdmin) this.mode = 'view';
+    else if (this.isManager) this.mode = 'compliance';
+    else if (this.isParent) this.mode = 'view';
+    else this.mode = 'view';
+
+    // Load semesters for all roles
+    this.academicSvc.getSemesters().subscribe(semesters => {
+      this.semesters = semesters;
+      const active = semesters.find((s: any) => s.isActive) || semesters[0];
+      if (active) this.complianceSemesterId = active.id;
+    });
 
     if (this.isTeacher) {
-      this.mode = 'submit';
       const profileId = this.auth.profileId;
       if (profileId) {
-        // Load semesters to find active one, then get teacher schedule
         this.academicSvc.getSemesters().subscribe(semesters => {
-          this.semesters = semesters;
           const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
           if (activeSemester) {
             this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
-              // Load versions first, then build session options with resolved groupId
               this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
                 const seen = new Set<string>();
                 this.sessionOptions = [];
                 for (const e of entries) {
-                  const key = `${e.subjectId}_${e.timetableVersionId}`;
+                  const key = `${e.subjectId}_${e.timetableVersionId}_${e.dayOfWeek}_${e.periodDefinitionId}`;
                   if (!seen.has(key)) {
                     seen.add(key);
                     const version = versions.find(v => v.id === e.timetableVersionId);
                     this.sessionOptions.push({
-                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'}`,
+                      label: `${e.subjectName} — ${version?.groupName ?? 'Unknown'} — ${e.periodLabel ?? ''} (${e.dayOfWeek})`,
                       subjectId: e.subjectId,
                       groupId: version?.groupId ?? '',
-                      semesterId: activeSemester.id
+                      semesterId: activeSemester.id,
+                      timetableEntryId: e.id
                     });
                   }
                 }
@@ -213,8 +458,6 @@ export class AttendanceComponent implements OnInit {
           }
         });
       }
-    } else {
-      this.mode = 'view';
     }
   }
 
@@ -228,7 +471,6 @@ export class AttendanceComponent implements OnInit {
     const session = this.sessionOptions[this.selectedSessionIdx];
     if (!session || !session.groupId) return;
 
-    // Load students assigned to this group
     this.assignmentSvc.getStudentAssignments({
       groupId: session.groupId,
       semesterId: session.semesterId
@@ -251,7 +493,21 @@ export class AttendanceComponent implements OnInit {
     if (!session) return;
 
     this.attendanceSvc.getAttendance(this.submitDate, session.groupId, session.subjectId).subscribe(
-      existing => { this.alreadySubmitted = existing.length > 0; },
+      existing => {
+        const nonDraft = existing.filter(r => r.submissionStatus !== SubmissionStatus.Draft);
+        this.alreadySubmitted = nonDraft.length > 0;
+        // If draft records exist, pre-populate entries
+        const drafts = existing.filter(r => r.submissionStatus === SubmissionStatus.Draft);
+        if (drafts.length > 0 && this.studentEntries.length > 0) {
+          for (const d of drafts) {
+            const entry = this.studentEntries.find(e => e.studentProfileId === d.studentProfileId);
+            if (entry) {
+              entry.status = d.status;
+              entry.notes = d.notes || '';
+            }
+          }
+        }
+      },
       () => { this.alreadySubmitted = false; }
     );
   }
@@ -261,7 +517,7 @@ export class AttendanceComponent implements OnInit {
     this.studentEntries.forEach(e => e.status = s);
   }
 
-  submitAttendance() {
+  submitAttendance(isDraft: boolean) {
     if (this.selectedSessionIdx < 0 || this.studentEntries.length === 0) return;
     const session = this.sessionOptions[this.selectedSessionIdx];
     if (!session) return;
@@ -274,8 +530,10 @@ export class AttendanceComponent implements OnInit {
       subjectId: session.subjectId,
       groupId: session.groupId,
       semesterId: session.semesterId,
+      timetableEntryId: session.timetableEntryId,
       date: this.submitDate,
       sessionTime: this.submitSessionTime || undefined,
+      isDraft,
       entries: this.studentEntries.map(e => ({
         studentProfileId: e.studentProfileId,
         status: e.status,
@@ -283,20 +541,121 @@ export class AttendanceComponent implements OnInit {
       }))
     };
 
-    this.attendanceSvc.submit(this.auth.profileId!, request).subscribe({
+    this.attendanceSvc.submit(request).subscribe({
       next: () => {
         this.submitting = false;
         this.submitSuccess = true;
-        this.alreadySubmitted = true;
+        if (!isDraft) this.alreadySubmitted = true;
       },
       error: (err) => {
         this.submitting = false;
-        this.submitError = err?.error?.message || err?.error?.detail || 'Failed to submit attendance. Please try again.';
+        this.submitError = err?.error?.error || err?.error?.message || 'Failed to submit attendance.';
       }
     });
   }
 
   loadAttendance() {
     this.attendanceSvc.getAttendance(this.filterDate).subscribe(r => this.records = r);
+  }
+
+  // Edit
+  startEdit(record: AttendanceRecordDto) {
+    this.editingRecord = record;
+    this.editStatus = record.status;
+    this.editNotes = record.notes || '';
+    this.editReason = '';
+    this.editError = '';
+  }
+
+  saveEdit() {
+    if (!this.editingRecord || !this.editReason) return;
+    this.submitting = true;
+    this.editError = '';
+    const req: UpdateAttendanceEntryRequest = {
+      attendanceRecordId: this.editingRecord.id,
+      status: this.editStatus,
+      notes: this.editNotes || undefined,
+      editReason: this.editReason
+    };
+    this.attendanceSvc.update(this.editingRecord.id, req).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.editingRecord = null;
+        this.loadAttendance();
+      },
+      error: (err) => {
+        this.submitting = false;
+        this.editError = err?.error?.error || err?.error?.message || 'Failed to update attendance.';
+      }
+    });
+  }
+
+  // Compliance
+  loadCompliance() {
+    if (!this.complianceSemesterId) return;
+    this.attendanceSvc.getCompliance(this.complianceSemesterId).subscribe(d => this.complianceData = d);
+  }
+
+  // Session compliance
+  loadSessionCompliance() {
+    if (!this.complianceSemesterId) return;
+    this.attendanceSvc.getSessionCompliance(this.complianceSemesterId, this.sessionDate || undefined).subscribe(d => this.sessionData = d);
+  }
+
+  // Permissions
+  loadPermissions() {
+    this.attendanceSvc.getEditPermissions().subscribe(p => this.permissions = p);
+  }
+
+  grantPermission() {
+    this.permissionError = '';
+    this.submitting = true;
+    this.attendanceSvc.grantEditPermission(this.grantReq).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.showGrantForm = false;
+        this.grantReq = { teacherProfileId: '', validFrom: '', validUntil: '', reason: '' };
+        this.loadPermissions();
+      },
+      error: (err) => {
+        this.submitting = false;
+        this.permissionError = err?.error?.error || 'Failed to grant permission.';
+      }
+    });
+  }
+
+  revokePermission(id: string) {
+    this.attendanceSvc.revokeEditPermission(id).subscribe(() => this.loadPermissions());
+  }
+
+  // Helpers
+  getSubmissionBadge(status: string): string {
+    switch (status) {
+      case 'Submitted': return 'present';
+      case 'SubmittedLate': return 'late';
+      case 'Updated': return 'excused';
+      case 'Draft': return 'absent';
+      default: return 'absent';
+    }
+  }
+
+  getSessionBadge(status: string): string {
+    switch (status) {
+      case 'Submitted': return 'present';
+      case 'SubmittedLate': return 'late';
+      case 'Missing': return 'absent';
+      case 'Pending': return 'excused';
+      default: return 'absent';
+    }
+  }
+
+  getSessionRowClass(status: string): string {
+    if (status === 'Missing') return 'session-missing';
+    if (status === 'SubmittedLate') return 'session-late';
+    return '';
+  }
+
+  getDayName(day: number): string {
+    return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day] || '';
   }
 }

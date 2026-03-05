@@ -500,9 +500,11 @@ public static class DatabaseSeeder
         // Attendance for students in 9A (Ali, Layla) — Math by Ahmed
         foreach (var date in attendanceDates)
         {
+            var submissionStatuses = new[] { SubmissionStatus.Submitted, SubmissionStatus.Submitted, SubmissionStatus.SubmittedLate };
             foreach (var sp in new[] { sp1, sp2 })
             {
                 var status = statuses[rng.Next(statuses.Length)];
+                var subStatus = submissionStatuses[rng.Next(submissionStatuses.Length)];
                 db.AttendanceRecords.Add(new AttendanceRecord
                 {
                     SchoolTenantId = school.Id,
@@ -514,6 +516,8 @@ public static class DatabaseSeeder
                     Date = date,
                     SessionTime = new TimeSpan(8, 0, 0),
                     Status = status,
+                    SubmissionStatus = subStatus,
+                    SubmittedAt = date.AddHours(8).AddMinutes(rng.Next(0, 30)),
                     Notes = status == AttendanceStatus.Absent ? "No excuse provided" : status == AttendanceStatus.Late ? "Arrived 10 min late" : null
                 });
             }
@@ -534,6 +538,8 @@ public static class DatabaseSeeder
                 Date = date,
                 SessionTime = new TimeSpan(8, 0, 0),
                 Status = status,
+                SubmissionStatus = SubmissionStatus.Submitted,
+                SubmittedAt = date.AddHours(8).AddMinutes(5),
                 Notes = status == AttendanceStatus.Excused ? "Medical appointment" : null
             });
         }
@@ -551,7 +557,9 @@ public static class DatabaseSeeder
                 SemesterId = sem1.Id,
                 Date = date,
                 SessionTime = new TimeSpan(9, 0, 0),
-                Status = AttendanceStatus.Present
+                Status = AttendanceStatus.Present,
+                SubmissionStatus = SubmissionStatus.Submitted,
+                SubmittedAt = date.AddHours(9).AddMinutes(10)
             });
         }
 

@@ -803,7 +803,269 @@ Dashboard
 
 ---
 
-## 14. Migration Checklist
+## 15. Attendance Module — Full Specification
+
+> **Added: March 5, 2026**
+> Comprehensive attendance module with submission lifecycle, role-based access, edit permissions, and audit trail.
+
+### 15.1 Overview
+
+The Attendance Module records, monitors, and reports student attendance for all scheduled academic sessions. Data integrity is enforced by linking attendance strictly to the official published timetable and enforcing role-based access controls.
+
+### 15.2 Roles and Permissions
+
+#### Teacher
+- **Primary data owner** for classroom attendance
+- View their assigned timetable sessions only
+- Record and submit attendance for assigned sessions only
+- Save attendance as **Draft** before final submission
+- Edit submitted records **only** within the grace period OR if Admin has granted an explicit edit permission
+- **Blocked from**: creating/modifying timetable entries, accessing unassigned sessions, editing after lock without permission
+
+#### Teacher Supervisor
+- **Compliance monitor** for supervised teachers
+- View real-time attendance records for all supervised teachers
+- Monitor submission status of all scheduled sessions (Submitted / Submitted Late / Missing)
+- Issue system-level reminders to teachers with Missing submissions
+- **Blocked from**: creating, submitting, or modifying any attendance records
+
+#### School Manager
+- Full **read-only** access to all attendance records and weekly summaries
+- Access analytical reports on submission trends and attendance percentages
+- **Blocked from**: creating, submitting, or editing any records
+
+#### School Admin
+- **Universal visibility** of all attendance data
+- Edit or correct any attendance record at any time (requires "Reason for Change" for audit log)
+- Unlock sessions for teachers (grant temporary edit permissions — time-windowed or session-specific)
+- Full access to audit and traceability logs
+- **Blocked from**: modifying timetable structure via the Attendance Module
+
+### 15.3 Submission Lifecycle & Status Definitions
+
+Every attendance submission transitions through these states:
+
+| Status | Stored? | Description |
+|--------|---------|-------------|
+| **Draft** | Yes | Entry started but not finalized. Teacher can modify freely. |
+| **Submitted** | Yes | Finalized before session end time. Locked after grace period. |
+| **Submitted Late** | Yes | Finalized after the session end time. |
+| **Missing** | No (computed) | No submission exists after the session end time. Computed on-the-fly by comparing timetable schedule vs existing records. |
+| **Updated** | Yes | A previously submitted record modified by an authorized user. |
+
+**Grace Period**: Configurable per school (default: 15 minutes). After submission, a teacher can still edit within this window without needing admin unlock. Stored as `SchoolTenant.GracePeriodMinutes`.
+
+### 15.4 New Enum: SubmissionStatus
+
+```csharp
+public enum SubmissionStatus
+{
+    Draft = 0,
+    Submitted = 1,
+    SubmittedLate = 2,
+    Updated = 3
+}
+```
+
+Note: `Missing` is never stored — it is computed at query time.
+
+### 15.5 New Entity: AttendanceEditPermission (TenantEntity)
+
+Allows an Admin to grant a teacher temporary edit access to locked attendance records.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| Id | Guid | PK (from BaseEntity) |
+| SchoolTenantId | Guid | FK → SchoolTenant (from TenantEntity) |
+| TeacherProfileId | Guid | FK → TeacherProfile — who gets the permission |
+| TimetableEntryId | Guid? | FK → TimetableEntry — null = all sessions in the time window |
+| ValidFrom | DateTime | Start of the permission window |
+| ValidUntil | DateTime | End of the permission window |
+| GrantedByUserId | Guid | The admin user who granted this |
+| GrantedByName | string | Display name of the admin |
+| Reason | string | Why the unlock was granted |
+| IsRevoked | bool | Default false; set true to cancel early |
+| RevokedAt | DateTime? | When it was revoked |
+
+**Unique constraint**: `(SchoolTenantId, TeacherProfileId, TimetableEntryId, ValidFrom)`
+
+### 15.6 Modified Entity: AttendanceRecord
+
+New/changed fields on the existing `AttendanceRecord` entity:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| SubmissionStatus | SubmissionStatus | Default: Draft. Tracks the submission lifecycle. |
+| TimetableEntryId | Guid? | FK → TimetableEntry. Links record to the exact scheduled session. |
+| SubmittedAt | DateTime? | Timestamp when status transitions from Draft → Submitted/SubmittedLate. |
+| LastEditedAt | DateTime? | Timestamp of the last edit after initial submission. |
+| LastEditedBy | string? | User ID of the last editor. |
+| EditReason | string? | Required when Admin edits or teacher edits with unlock permission. |
+
+### 15.7 Modified Entity: SchoolTenant
+
+| Field | Type | Notes |
+|-------|------|-------|
+| GracePeriodMinutes | int | Default: 15. How long after submission a teacher can still edit without admin unlock. |
+
+### 15.8 New AuditAction Values
+
+```csharp
+AttendanceSubmit = 14,   // Teacher finalizes Draft → Submitted/SubmittedLate
+AttendanceEdit = 15,     // Any authorized edit of a submitted record
+AttendanceUnlock = 16    // Admin grants edit permission
+```
+
+### 15.9 DTOs
+
+#### Updated: AttendanceRecordDto
+Add fields: `submissionStatus`, `timetableEntryId`, `submittedAt`, `periodLabel`, `startTime`, `endTime`
+
+#### Updated: SubmitAttendanceRequest
+Add field: `timetableEntryId` (required — links to exact session)
+
+#### New: UpdateAttendanceEntryRequest
+```
+{ attendanceRecordId: Guid, status: AttendanceStatus, notes: string?, editReason: string }
+```
+
+#### New: GrantEditPermissionRequest
+```
+{ teacherProfileId: Guid, timetableEntryId: Guid?, validFrom: DateTime, validUntil: DateTime, reason: string }
+```
+
+#### New: AttendanceEditPermissionDto
+Mirrors the entity for API responses.
+
+#### New: SessionComplianceDto
+```
+{ timetableEntryId, dayOfWeek, periodLabel, subjectName, groupName, teacherName, submissionStatus (Submitted|SubmittedLate|Missing), submittedAt? }
+```
+
+#### Updated: AttendanceComplianceDto
+Populate `lateDays` (count of SubmittedLate), add `missingSessions` count.
+
+### 15.10 Service Interface Changes
+
+New methods on `IAttendanceService`:
+
+```csharp
+Task<Result> UpdateAttendanceAsync(Guid tenantId, Guid callerUserId, string callerRole, UpdateAttendanceEntryRequest request, CancellationToken ct);
+Task<Result<List<SessionComplianceDto>>> GetSessionComplianceAsync(Guid tenantId, Guid semesterId, DateTime? date, Guid? teacherProfileId, CancellationToken ct);
+Task<Result<AttendanceEditPermissionDto>> GrantEditPermissionAsync(Guid tenantId, Guid adminUserId, GrantEditPermissionRequest request, CancellationToken ct);
+Task<Result> RevokeEditPermissionAsync(Guid permissionId, Guid adminUserId, CancellationToken ct);
+Task<Result<List<AttendanceEditPermissionDto>>> GetEditPermissionsAsync(Guid tenantId, Guid? teacherProfileId, CancellationToken ct);
+```
+
+Modified existing method — `SubmitAttendanceAsync`:
+- Resolve `TeacherProfileId` from authenticated user claims (not query string)
+- Validate `timetableEntryId` exists, is published, belongs to this teacher and group
+- Server-side duplicate prevention: reject if Submitted/SubmittedLate records already exist for same StudentProfileId + TimetableEntryId + Date
+- Allow re-submit of Draft records (update instead of duplicate)
+- Auto-assign `Submitted` vs `SubmittedLate` by comparing `DateTime.UtcNow` against `PeriodDefinition.EndTime`
+- Write `AuditAction.AttendanceSubmit` audit log entry
+
+### 15.11 Controller Endpoints
+
+| Method | Route | Auth Roles | Description |
+|--------|-------|------------|-------------|
+| POST | `api/attendance/submit` | Teacher | Submit attendance (teacherProfileId resolved server-side) |
+| PUT | `api/attendance/{id}` | Teacher, SchoolAdmin | Edit a record (checks grace period / edit permission / admin role) |
+| GET | `api/attendance` | Teacher, Supervisor, Manager, Admin | Get records by date + optional filters |
+| GET | `api/attendance/student/{id}` | Supervisor, Manager, Admin, Parent (own children), Student (self only) | Get student's attendance |
+| GET | `api/attendance/compliance` | Supervisor, Manager, Admin | Aggregate compliance stats |
+| GET | `api/attendance/session-compliance` | Supervisor, Manager, Admin | Per-session submission status grid |
+| POST | `api/attendance/edit-permissions` | SchoolAdmin | Grant edit unlock |
+| DELETE | `api/attendance/edit-permissions/{id}` | SchoolAdmin | Revoke edit unlock |
+| GET | `api/attendance/edit-permissions` | SchoolAdmin | List active permissions |
+
+**Security fix**: Remove `teacherProfileId` from submit endpoint query string. Resolve from JWT claims.
+
+### 15.12 Edit Protocol
+
+When `UpdateAttendanceAsync` is called:
+1. Load the existing `AttendanceRecord`
+2. Authorization check (in order):
+   a. **SchoolAdmin** → always allowed; `editReason` required
+   b. **Teacher** (original submitter only):
+      - Within grace period (`SubmittedAt + GracePeriodMinutes > now`) → allowed
+      - Else check `AttendanceEditPermission` for active, non-revoked permission covering this session/time → allowed if found
+      - Otherwise → reject "Edit permission required"
+   c. All other roles → reject
+3. Update fields, set `SubmissionStatus = Updated`, `LastEditedAt`, `LastEditedBy`, `EditReason`
+4. Write `AuditAction.AttendanceEdit` audit log with old value, new value, reason, authorization type
+
+### 15.13 Missing Status Computation
+
+"Missing" is **never stored** — it is computed on-the-fly:
+1. Query published `TimetableEntry` records for the given semester/date
+2. Left-join with `AttendanceRecord` to find which sessions have submissions
+3. For sessions with no records where the session end time has passed → status = "Missing"
+4. Return in `SessionComplianceDto` alongside Submitted/SubmittedLate sessions
+
+### 15.14 Frontend Views (by Role)
+
+#### Teacher View
+- Session picker from published timetable (only assigned sessions)
+- Student roster auto-loaded for selected session
+- Mark each student: Present / Absent / Late / Excused
+- "Save as Draft" button + "Submit" button
+- After submission: grace period countdown visible; Edit button enabled during grace period or when admin has granted permission
+- "All Present" / "All Absent" bulk actions
+
+#### Supervisor View
+- Date picker + compliance grid for all supervised teachers
+- Color-coded: ✅ Submitted (green), ⚠️ Submitted Late (yellow), ❌ Missing (red)
+- "Send Reminder" button for Missing sessions
+
+#### Admin View
+- Full read access to all records
+- Click any record to edit with "Reason for Change" dialog
+- "Unlock Session" button → opens grant-permission form
+- Audit log viewer for attendance changes
+
+#### Manager View
+- Read-only aggregate dashboard (same as Supervisor minus reminder action)
+
+#### Parent View
+- Per-child attendance summary by subject: total sessions, present count, absent count, percentage
+
+### 15.15 Business Rules Summary
+
+| Rule | Implementation |
+|------|---------------|
+| One record per student per session | Unique constraint: `(StudentProfileId, TimetableEntryId, Date)` |
+| Teacher can only submit for assigned sessions | Validate `TimetableEntry.TeacherProfileId == callerTeacherProfileId` |
+| Block URL-tampering | Server-side tenant + teacher verification on all mutations |
+| Audit every edit | `AuditLog` entry with old value, new value, reason, authorization type |
+| Edit requires authorization | Grace period OR admin unlock OR admin role |
+| Weekly report refresh on Update | Any `SubmissionStatus = Updated` triggers report recalculation |
+
+### 15.16 Attendance Migration Checklist
+
+28. ☐ Add `SubmissionStatus` enum to Enums.cs
+29. ☐ Extend `AttendanceRecord` entity with new fields
+30. ☐ Create `AttendanceEditPermission` entity + DbSet + configuration
+31. ☐ Add `GracePeriodMinutes` to `SchoolTenant`
+32. ☐ Add `AttendanceSubmit`, `AttendanceEdit`, `AttendanceUnlock` to `AuditAction` enum
+33. ☐ Update attendance DTOs (add new fields, new request/response types)
+34. ☐ Extend `IAttendanceService` with new methods
+35. ☐ Rewrite `SubmitAttendanceAsync` (server-side teacher verification, duplicate prevention, timetable validation, status assignment, audit)
+36. ☐ Implement `UpdateAttendanceAsync` (edit protocol with grace period + permission check)
+37. ☐ Implement `GetSessionComplianceAsync` (on-the-fly Missing computation)
+38. ☐ Implement edit permission CRUD methods
+39. ☐ Harden `AttendanceController` (remove teacherProfileId from query, add new endpoints)
+40. ☐ Frontend: add `SubmissionStatus` enum, update models
+41. ☐ Frontend: update `AttendanceService` in data.service.ts
+42. ☐ Frontend: overhaul attendance component with role-specific views
+43. ☐ Frontend: add Parent attendance visibility to sidebar + routes
+44. ☐ Generate EF Core migration for schema changes
+45. ☐ Update seeder with sample attendance data using new statuses
+46. ☐ Build verification: 0 errors backend + frontend
+
+---
+
+## 16. Migration Checklist (Combined)
 
 1. ☐ Create `PeriodDefinition` entity + DbSet + migration
 2. ☐ Create `Room` entity + `RoomType` enum + DbSet + migration
@@ -832,3 +1094,12 @@ Dashboard
 25. ☐ Frontend: redesign TimetableComponent with grid builder + validation UI
 26. ☐ Frontend: update sidebar navigation
 27. ☐ Build verification: 0 errors backend + frontend
+28. ☐ Attendance: Add `SubmissionStatus` enum + `AttendanceEditPermission` entity + `GracePeriodMinutes` + new `AuditAction` values
+29. ☐ Attendance: Extend `AttendanceRecord` with new fields
+30. ☐ Attendance: Update DTOs + service interface + controller endpoints
+31. ☐ Attendance: Rewrite `SubmitAttendanceAsync` with full validation
+32. ☐ Attendance: Implement `UpdateAttendanceAsync` (edit protocol)
+33. ☐ Attendance: Implement `GetSessionComplianceAsync` + edit permission CRUD
+34. ☐ Attendance: Frontend role-specific views + parent access
+35. ☐ Attendance: Generate migration + update seeder
+36. ☐ Build verification: 0 errors backend + frontend

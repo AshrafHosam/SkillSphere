@@ -30,6 +30,7 @@ public class SkillSphereDbContext : DbContext
     public DbSet<TimetableVersion> TimetableVersions => Set<TimetableVersion>();
     public DbSet<TimetableEntry> TimetableEntries => Set<TimetableEntry>();
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+    public DbSet<AttendanceEditPermission> AttendanceEditPermissions => Set<AttendanceEditPermission>();
     public DbSet<GradeRecord> GradeRecords => Set<GradeRecord>();
     public DbSet<BehaviorFeedback> BehaviorFeedbacks => Set<BehaviorFeedback>();
     public DbSet<PerformanceAttributeDefinition> PerformanceAttributeDefinitions => Set<PerformanceAttributeDefinition>();

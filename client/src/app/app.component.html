@@ -95,7 +95,7 @@
             <p>Timetable</p>
           </a>
         </li>
-        <li routerLinkActive="active" *ngIf="['Teacher','TeacherSupervisor','SchoolManager'].includes(auth.userRole!)">
+        <li routerLinkActive="active" *ngIf="['Teacher','TeacherSupervisor','SchoolManager','SchoolAdmin','Parent'].includes(auth.userRole!)">
           <a routerLink="/attendance">
             <i class="material-icons">fact_check</i>
             <p>Attendance</p>

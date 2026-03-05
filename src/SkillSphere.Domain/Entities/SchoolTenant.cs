@@ -13,6 +13,7 @@ public class SchoolTenant : BaseEntity
     public string? LogoUrl { get; set; }
     public string? Timezone { get; set; } = "UTC";
     public DayOfWeekFlag WorkingDays { get; set; } = (DayOfWeekFlag)31; // Sun+Mon+Tue+Wed+Thu
+    public int GracePeriodMinutes { get; set; } = 15;
     public bool IsActive { get; set; } = true;
 
     // Navigation

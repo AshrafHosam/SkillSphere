@@ -218,7 +218,37 @@ public class AttendanceRecordConfig : IEntityTypeConfiguration<AttendanceRecord>
     public void Configure(EntityTypeBuilder<AttendanceRecord> b)
     {
         b.HasKey(x => x.Id);
+        b.HasIndex(x => new { x.StudentProfileId, x.TimetableEntryId, x.Date }).IsUnique()
+            .HasFilter("\"TimetableEntryId\" IS NOT NULL");
         b.HasIndex(x => new { x.StudentProfileId, x.SubjectId, x.Date, x.SessionTime });
+        b.Property(x => x.EditReason).HasMaxLength(1000);
+        b.Property(x => x.LastEditedBy).HasMaxLength(200);
+
+        b.HasOne(x => x.TimetableEntry)
+            .WithMany()
+            .HasForeignKey(x => x.TimetableEntryId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class AttendanceEditPermissionConfig : IEntityTypeConfiguration<AttendanceEditPermission>
+{
+    public void Configure(EntityTypeBuilder<AttendanceEditPermission> b)
+    {
+        b.HasKey(x => x.Id);
+        b.HasIndex(x => new { x.SchoolTenantId, x.TeacherProfileId, x.TimetableEntryId, x.ValidFrom }).IsUnique();
+        b.Property(x => x.GrantedByName).HasMaxLength(200).IsRequired();
+        b.Property(x => x.Reason).HasMaxLength(1000).IsRequired();
+
+        b.HasOne(x => x.TeacherProfile)
+            .WithMany()
+            .HasForeignKey(x => x.TeacherProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        b.HasOne(x => x.TimetableEntry)
+            .WithMany()
+            .HasForeignKey(x => x.TimetableEntryId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 

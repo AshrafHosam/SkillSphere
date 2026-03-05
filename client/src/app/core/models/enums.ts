@@ -15,6 +15,13 @@ export enum AttendanceStatus {
   Excused = 'Excused'
 }
 
+export enum SubmissionStatus {
+  Draft = 'Draft',
+  Submitted = 'Submitted',
+  SubmittedLate = 'SubmittedLate',
+  Updated = 'Updated'
+}
+
 export enum InternalReportCategory {
   StudentRisk = 'StudentRisk',
   Behavior = 'Behavior',

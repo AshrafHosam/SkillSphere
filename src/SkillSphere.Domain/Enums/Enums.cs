@@ -19,6 +19,14 @@ public enum AttendanceStatus
     Excused = 3
 }
 
+public enum SubmissionStatus
+{
+    Draft = 0,
+    Submitted = 1,
+    SubmittedLate = 2,
+    Updated = 3
+}
+
 public enum InternalReportCategory
 {
     StudentRisk = 0,
@@ -92,7 +100,10 @@ public enum AuditAction
     NotificationSent = 10,
     RoleChange = 11,
     Escalation = 12,
-    TimetablePublish = 13
+    TimetablePublish = 13,
+    AttendanceSubmit = 14,
+    AttendanceEdit = 15,
+    AttendanceUnlock = 16
 }
 
 public enum TimetableStatus
