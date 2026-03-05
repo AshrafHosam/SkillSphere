@@ -58,6 +58,13 @@ export interface StudentAssignmentDto {
   isActive: boolean;
 }
 
+export interface BulkAssignStudentsRequest {
+  studentProfileIds: string[];
+  gradeId: string;
+  groupId: string;
+  semesterId: string;
+}
+
 // New entities
 export interface PeriodDefinitionDto {
   id: string;

@@ -33,6 +33,13 @@ public class AssignmentsController : ControllerBase
         return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
     }
 
+    [HttpPost("students/bulk")]
+    public async Task<IActionResult> BulkAssignStudents([FromBody] BulkAssignStudentsRequest req, CancellationToken ct)
+    {
+        var r = await _assignmentService.BulkAssignStudentsAsync(TenantId, req, ct);
+        return r.IsSuccess ? Ok(r.Data) : BadRequest(new { error = r.Error });
+    }
+
     [HttpDelete("students/{id:guid}")]
     public async Task<IActionResult> RemoveStudentAssignment(Guid id, CancellationToken ct)
     {

@@ -21,3 +21,11 @@ public class CreateStudentAssignmentRequest
     public Guid GroupId { get; set; }
     public Guid SemesterId { get; set; }
 }
+
+public class BulkAssignStudentsRequest
+{
+    public List<Guid> StudentProfileIds { get; set; } = [];
+    public Guid GradeId { get; set; }
+    public Guid GroupId { get; set; }
+    public Guid SemesterId { get; set; }
+}

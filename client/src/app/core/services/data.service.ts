@@ -7,7 +7,7 @@ import {
   UserDto, CreateUserRequest, UpdateUserRequest, CreateTeacherRequest,
   CreateStudentRequest, TeacherProfileDto, StudentProfileDto, ParentProfileDto, LinkParentRequest,
   GradeDto, GroupDto, SubjectDto, DepartmentDto, SemesterDto,
-  StudentAssignmentDto, PeriodDefinitionDto, RoomDto, CurriculumContractDto, TeacherSubjectLinkDto,
+  StudentAssignmentDto, BulkAssignStudentsRequest, PeriodDefinitionDto, RoomDto, CurriculumContractDto, TeacherSubjectLinkDto,
   TimetableVersionDto, TimetableEntryDto, CreateTimetableVersionRequest, AddTimetableEntryRequest, TimetableValidationError,
   AttendanceRecordDto, SubmitAttendanceRequest, AttendanceComplianceDto,
   UpdateAttendanceEntryRequest, GrantEditPermissionRequest, AttendanceEditPermissionDto, SessionComplianceDto,
@@ -83,6 +83,7 @@ export class AssignmentService {
   constructor(private api: ApiService) {}
   getStudentAssignments(params?: any): Observable<StudentAssignmentDto[]> { return this.api.get('assignments/students', params); }
   createStudentAssignment(req: any): Observable<StudentAssignmentDto> { return this.api.post('assignments/students', req); }
+  bulkAssignStudents(req: BulkAssignStudentsRequest): Observable<StudentAssignmentDto[]> { return this.api.post('assignments/students/bulk', req); }
   deleteStudentAssignment(id: string): Observable<void> { return this.api.delete(`assignments/students/${id}`); }
 }
 
