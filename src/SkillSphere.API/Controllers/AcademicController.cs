@@ -24,6 +24,7 @@ public class AcademicController : ControllerBase
 
     // ---- Grades ----
     [HttpGet("grades")]
+    [Authorize]
     public async Task<IActionResult> GetGrades(CancellationToken ct) => Ok((await _academicService.GetGradesAsync(TenantId, ct)).Data);
 
     [HttpPost("grades")]
@@ -49,6 +50,7 @@ public class AcademicController : ControllerBase
 
     // ---- Groups (was Class Sections) ----
     [HttpGet("groups")]
+    [Authorize]
     public async Task<IActionResult> GetGroups([FromQuery] Guid? gradeId, CancellationToken ct) => Ok((await _academicService.GetGroupsAsync(TenantId, gradeId, ct)).Data);
 
     [HttpPost("groups")]
@@ -74,6 +76,7 @@ public class AcademicController : ControllerBase
 
     // ---- Subjects ----
     [HttpGet("subjects")]
+    [Authorize]
     public async Task<IActionResult> GetSubjects(CancellationToken ct) => Ok((await _academicService.GetSubjectsAsync(TenantId, ct)).Data);
 
     [HttpPost("subjects")]
@@ -99,6 +102,7 @@ public class AcademicController : ControllerBase
 
     // ---- Departments ----
     [HttpGet("departments")]
+    [Authorize]
     public async Task<IActionResult> GetDepartments(CancellationToken ct) => Ok((await _academicService.GetDepartmentsAsync(TenantId, ct)).Data);
 
     [HttpPost("departments")]
@@ -124,6 +128,7 @@ public class AcademicController : ControllerBase
 
     // ---- Semesters ----
     [HttpGet("semesters")]
+    [Authorize]
     public async Task<IActionResult> GetSemesters(CancellationToken ct) => Ok((await _academicService.GetSemestersAsync(TenantId, ct)).Data);
 
     [HttpPost("semesters")]

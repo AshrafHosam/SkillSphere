@@ -66,7 +66,7 @@ export const routes: Routes = [
   },
   {
     path: 'attendance',
-    canActivate: [roleGuard('Teacher', 'TeacherSupervisor', 'SchoolManager')],
+    canActivate: [roleGuard('Teacher', 'TeacherSupervisor', 'SchoolManager', 'SchoolAdmin', 'Parent')],
     loadComponent: () => import('./features/attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
