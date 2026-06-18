@@ -61,6 +61,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+
   toggleLang(): void {
     this.i18n.toggle();
   }

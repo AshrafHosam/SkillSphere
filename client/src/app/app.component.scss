@@ -1,7 +1,7 @@
 /* ===== App Shell — flat/modern layout ===== */
 $sidebar-width: 264px;
 $navbar-height: 64px;
-$transition: all 0.25s ease;
+$transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
 .wrapper {
   display: flex;
@@ -51,6 +51,7 @@ $transition: all 0.25s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
     .logo-subtitle {
       display: block;
@@ -61,6 +62,28 @@ $transition: all 0.25s ease;
       text-transform: uppercase;
       letter-spacing: 0.6px;
       font-weight: 600;
+    }
+
+    .sidebar-close-btn {
+      display: none;
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.08);
+      border: none;
+      border-radius: var(--radius-md);
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      i { font-size: 22px; color: rgba(255,255,255,0.85); }
+      &:hover { background: rgba(255,255,255,0.16); }
+      &:active { background: rgba(255,255,255,0.24); }
     }
   }
 
@@ -135,6 +158,8 @@ $transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
   transition: $transition;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* ----- Navbar ----- */
@@ -209,34 +234,63 @@ $transition: all 0.25s ease;
 
 /* ----- Backdrop ----- */
 .sidebar-backdrop {
-  display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 23, 42, 0.4);
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  touch-action: manipulation;
+
+  &.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
-/* ----- Responsive ----- */
+/* ----- Responsive — tablet ----- */
 @media (max-width: 991px) {
   .sidebar {
-    transform: translateX(calc(-1 * (100% + var(--shell-gap) * 2)));
+    width: min(#{$sidebar-width}, 82vw);
+    transform: translateX(calc(-1 * (min(#{$sidebar-width}, 82vw) + var(--shell-gap) * 2)));
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+
     &.sidebar-open { transform: translateX(0); }
+
+    .logo .sidebar-close-btn { display: flex; }
   }
-  .main-panel {
-    margin-left: 0;
+  .main-panel { margin-left: 0; }
+  .navbar .navbar-toggler { display: flex; }
+}
+
+/* ----- Responsive — mobile ----- */
+@media (max-width: 600px) {
+  .navbar {
+    padding: 14px 16px 8px;
+
+    .navbar-brand { font-size: 16px; }
+
+    .btn-lang span { display: none; }
+
+    .user-chip {
+      padding: 5px 10px;
+      gap: 6px;
+      .user-name { font-size: 12px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .user-role { display: none; }
+    }
   }
-  .navbar .navbar-toggler {
-    display: flex;
-  }
-  .sidebar-backdrop {
-    display: block;
-  }
-  .user-chip .user-role {
-    display: none;
-  }
+
+  .main-content { padding: 0 4px; }
+}
+
+@media (max-width: 400px) {
+  .navbar .user-chip .user-name { display: none; }
 }
 
 
@@ -264,12 +318,22 @@ $transition: all 0.25s ease;
 :host-context([dir="rtl"]) {
   .sidebar { left: auto; right: var(--shell-gap); }
   .main-panel { margin-left: 0; margin-right: calc(#{$sidebar-width} + var(--shell-gap) * 2); }
-  .sidebar .logo .logo-subtitle { padding-left: 0; padding-right: 46px; }
+  .sidebar .logo {
+    .logo-subtitle { padding-left: 0; padding-right: 46px; }
+    .sidebar-close-btn { right: auto; left: 12px; }
+  }
   .user-chip .user-role { padding-left: 0; padding-right: 8px; border-left: none; border-right: 1px solid var(--border-color); }
 }
+
 @media (max-width: 991px) {
   :host-context([dir="rtl"]) {
-    .sidebar { transform: translateX(calc(100% + var(--shell-gap) * 2)); &.sidebar-open { transform: translateX(0); } }
+    .sidebar {
+      left: auto;
+      right: 0;
+      border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+      transform: translateX(calc(min(#{$sidebar-width}, 82vw) + var(--shell-gap) * 2));
+      &.sidebar-open { transform: translateX(0); }
+    }
     .main-panel { margin-right: 0; }
   }
 }

@@ -8,6 +8,9 @@
         <span>{{ 'SkillSphere' | t }}</span>
       </a>
       <small class="logo-subtitle">{{ (auth.currentUser?.user?.schoolTenantId ? 'School Portal' : 'Platform Admin') | t }}</small>
+      <button class="sidebar-close-btn" (click)="closeSidebar()" [title]="'Close' | t">
+        <i class="material-icons">close</i>
+      </button>
     </div>
     <div class="sidebar-wrapper">
       <ul class="nav">
@@ -165,7 +168,7 @@
 </div>
 
 <!-- Backdrop for mobile sidebar -->
-<div class="sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+<div class="sidebar-backdrop" [class.active]="sidebarOpen" (click)="closeSidebar()"></div>
 
 <!-- Login view -->
 <ng-template #loginView>
