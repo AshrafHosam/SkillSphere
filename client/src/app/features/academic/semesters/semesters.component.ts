@@ -11,6 +11,7 @@ import { I18nService } from '@core/i18n/i18n.service';
   standalone: true,
   imports: [CommonModule, FormsModule, LocalDatePipe, TranslatePipe],
   template: `
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ (editId ? 'Edit Semester' : 'Add Semester') | t }}</h4>
@@ -20,7 +21,7 @@ import { I18nService } from '@core/i18n/i18n.service';
         <div class="form-row">
           <div class="form-group">
             <label>{{ 'Name (English)' | t }}</label>
-            <input [(ngModel)]="form.name" placeholder="e.g. 2025-2026 Term 1" />
+            <input [(ngModel)]="form.name" [placeholder]="'e.g. 2025-2026 Term 1' | t" />
           </div>
           <div class="form-group">
             <label>{{ 'Name (Arabic)' | t }}</label>
@@ -29,7 +30,7 @@ import { I18nService } from '@core/i18n/i18n.service';
           <div class="form-group"><label>{{ 'Start Date' | t }}</label><input type="date" [(ngModel)]="form.startDate" /></div>
           <div class="form-group"><label>{{ 'End Date' | t }}</label><input type="date" [(ngModel)]="form.endDate" /></div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="cancelForm()">{{ 'Cancel' | t }}</button>
       </div>
     </div>
@@ -44,6 +45,7 @@ import { I18nService } from '@core/i18n/i18n.service';
           <table class="table">
             <thead><tr><th>{{ 'Name' | t }}</th><th>{{ 'Start' | t }}</th><th>{{ 'End' | t }}</th><th>{{ 'Current' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="5" class="text-center">{{ 'No semesters found.' | t }}</td></tr>
               <tr *ngFor="let s of items">
                 <td>
                   {{ i18n.lang() === 'ar' && s.nameAr ? s.nameAr : s.name }}
@@ -70,12 +72,14 @@ export class SemestersComponent implements OnInit {
   showForm = false;
   editId: string | null = null;
   form: any = {};
+  saving = false;
+  error = '';
   readonly i18n = inject(I18nService);
   constructor(private svc: AcademicService) {}
   ngOnInit() { this.load(); }
-  load() { this.svc.getSemesters().subscribe(d => this.items = d); }
+  load() { this.svc.getSemesters().subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load semesters.' }); }
 
-  openAdd() { this.editId = null; this.form = {}; this.showForm = true; }
+  openAdd() { this.editId = null; this.form = {}; this.showForm = true; this.error = ''; }
 
   openEdit(s: any) {
     this.editId = s.id;
@@ -87,17 +91,26 @@ export class SemestersComponent implements OnInit {
       isCurrent: s.isCurrent
     };
     this.showForm = true;
+    this.error = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cancelForm() { this.showForm = false; this.editId = null; this.form = {}; }
+  cancelForm() { this.showForm = false; this.editId = null; this.form = {}; this.error = ''; }
 
   save() {
+    if (this.form.startDate && this.form.endDate && this.form.endDate <= this.form.startDate) {
+      this.error = 'End date must be after start date.';
+      return;
+    }
+    this.saving = true; this.error = '';
     const obs = this.editId
       ? this.svc.updateSemester(this.editId, this.form)
       : this.svc.createSemester(this.form);
-    obs.subscribe(() => { this.cancelForm(); this.load(); });
+    obs.subscribe({ next: () => { this.saving = false; this.cancelForm(); this.load(); }, error: () => { this.saving = false; this.error = 'Failed to save semester.'; } });
   }
 
-  remove(id: string) { this.svc.deleteSemester(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Delete this semester?')) return;
+    this.svc.deleteSemester(id).subscribe({ next: () => this.load(), error: () => this.error = 'Failed to delete semester.' });
+  }
 }

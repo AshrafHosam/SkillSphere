@@ -110,7 +110,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
       </div>
       <div class="card-body">
         <div class="filter-row">
-          <select [(ngModel)]="filter.role" (change)="load()">
+          <select [(ngModel)]="filter.role" (change)="page = 1; load()">
             <option value="">{{ 'All Roles' | t }}</option>
             <option value="SchoolAdmin">{{ 'Admin' | t }}</option>
             <option value="SchoolManager">{{ 'Manager' | t }}</option>
@@ -124,6 +124,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
           <table class="table">
             <thead><tr><th>{{ 'Name' | t }}</th><th>{{ 'Email' | t }}</th><th>{{ 'Role' | t }}</th><th>{{ 'Status' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!users.length"><td colspan="5" class="text-center">{{ 'No users found.' | t }}</td></tr>
               <tr *ngFor="let u of users">
                 <td>{{ u.fullName }}</td>
                 <td>{{ u.email }}</td>
@@ -137,6 +138,11 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
             </tbody>
           </table>
         </div>
+        <div class="pagination-row" *ngIf="totalPages > 1" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn btn-sm btn-default" (click)="goToPage(page - 1)" [disabled]="page <= 1">{{ '← Prev' | t }}</button>
+          <span>{{ 'Page' | t }} {{page}} / {{totalPages}}</span>
+          <button class="btn btn-sm btn-default" (click)="goToPage(page + 1)" [disabled]="page >= totalPages">{{ 'Next →' | t }}</button>
+        </div>
       </div>
     </div>
   `,
@@ -149,6 +155,10 @@ export class UserListComponent implements OnInit {
   showForm = false;
   form: any = {};
   filter: any = { role: '' };
+  page = 1;
+  pageSize = 20;
+  totalPages = 1;
+  totalCount = 0;
 
   // Parent-child linking
   showParentLinking = false;
@@ -165,7 +175,20 @@ export class UserListComponent implements OnInit {
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.userService.getAll(this.filter.role ? { role: this.filter.role } : {}).subscribe(r => this.users = r.items || []);
+    const params: any = this.filter.role ? { role: this.filter.role } : {};
+    params.page = this.page;
+    params.pageSize = this.pageSize;
+    this.userService.getAll(params).subscribe(r => {
+      this.users = r.items || [];
+      this.totalCount = r.totalCount ?? 0;
+      this.totalPages = r.totalPages ?? 1;
+    });
+  }
+
+  goToPage(p: number): void {
+    if (p < 1 || p > this.totalPages) return;
+    this.page = p;
+    this.load();
   }
 
   create(): void {

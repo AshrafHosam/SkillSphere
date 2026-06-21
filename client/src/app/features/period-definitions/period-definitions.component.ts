@@ -14,13 +14,14 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
       <button class="btn btn-primary" (click)="showForm=!showForm">{{ (showForm ? 'Cancel' : '+ Add Period') | t }}</button>
     </div>
 
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ (editId ? 'Edit Period' : 'Add Period') | t }}</h4>
       </div>
       <div class="card-body">
         <div class="form-row">
-          <div class="form-group"><label>{{ 'Period Number' | t }}</label><input type="number" [(ngModel)]="form.periodNumber" /></div>
+          <div class="form-group"><label>{{ 'Period Number' | t }}</label><input type="number" [(ngModel)]="form.periodNumber" min="1" /></div>
           <div class="form-group"><label>{{ 'Label' | t }}</label><input [(ngModel)]="form.label" [placeholder]="'e.g. Period 1' | t" /></div>
           <div class="form-group"><label>{{ 'Start Time' | t }}</label><input type="time" [(ngModel)]="form.startTime" /></div>
           <div class="form-group"><label>{{ 'End Time' | t }}</label><input type="time" [(ngModel)]="form.endTime" /></div>
@@ -32,7 +33,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
             </select>
           </div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="cancelEdit()">{{ 'Cancel' | t }}</button>
       </div>
     </div>
@@ -47,6 +48,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
           <table class="table">
             <thead><tr><th>#</th><th>{{ 'Label' | t }}</th><th>{{ 'Start' | t }}</th><th>{{ 'End' | t }}</th><th>{{ 'Break?' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="6" class="text-center">{{ 'No periods defined.' | t }}</td></tr>
               <tr *ngFor="let p of items" [class.break-row]="p.isBreak">
                 <td>{{p.periodNumber}}</td><td>{{p.label}}</td><td>{{p.startTime}}</td><td>{{p.endTime}}</td>
                 <td>{{ (p.isBreak ? 'Yes' : 'No') | t }}</td>
@@ -68,28 +70,34 @@ export class PeriodDefinitionsComponent implements OnInit {
   showForm = false;
   form: any = { isBreak: false };
   editId: string | null = null;
+  saving = false;
+  error = '';
 
   constructor(private svc: PeriodDefinitionService) {}
 
   ngOnInit() { this.load(); }
 
-  load() { this.svc.getAll().subscribe(d => this.items = d); }
+  load() { this.svc.getAll().subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load periods.' }); }
 
   save() {
-    if (this.editId) {
-      this.svc.update(this.editId, this.form).subscribe(() => { this.cancelEdit(); this.load(); });
-    } else {
-      this.svc.create(this.form).subscribe(() => { this.cancelEdit(); this.load(); });
-    }
+    this.saving = true; this.error = '';
+    const obs = this.editId
+      ? this.svc.update(this.editId, this.form)
+      : this.svc.create(this.form);
+    obs.subscribe({ next: () => { this.saving = false; this.cancelEdit(); this.load(); }, error: () => { this.saving = false; this.error = 'Failed to save period.'; } });
   }
 
   edit(p: PeriodDefinitionDto) {
     this.editId = p.id;
     this.form = { periodNumber: p.periodNumber, label: p.label, startTime: p.startTime, endTime: p.endTime, isBreak: p.isBreak };
     this.showForm = true;
+    this.error = '';
   }
 
-  cancelEdit() { this.editId = null; this.form = { isBreak: false }; this.showForm = false; }
+  cancelEdit() { this.editId = null; this.form = { isBreak: false }; this.showForm = false; this.error = ''; }
 
-  remove(id: string) { this.svc.delete(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Delete this period?')) return;
+    this.svc.delete(id).subscribe({ next: () => this.load(), error: () => this.error = 'Failed to delete period.' });
+  }
 }

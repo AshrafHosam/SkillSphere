@@ -5,7 +5,7 @@ import { GradesService, AssignmentService, AcademicService, TimetableService } f
 import { AuthService } from '@core/services/auth.service';
 import { LocalDatePipe } from '@core/pipes/local-date.pipe';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
-import { StudentAssignmentDto, GradeRecordDto, BehaviorFeedbackDto, CreateGradeRecordRequest, CreateBehaviorFeedbackRequest, SemesterDto, TimetableEntryDto, TimetableVersionDto } from '@core/models';
+import { StudentAssignmentDto, GradeRecordDto, BehaviorFeedbackDto, CreateGradeRecordRequest, CreateBehaviorFeedbackRequest } from '@core/models';
 
 interface SessionOption {
   label: string;
@@ -69,11 +69,11 @@ interface SessionOption {
           <div class="form-grid">
             <div class="form-group">
               <label>{{ 'Score' | t }}</label>
-              <input type="number" [(ngModel)]="gradeForm.score" placeholder="e.g. 85" />
+              <input type="number" [(ngModel)]="gradeForm.score" [placeholder]="'e.g. 85' | t" />
             </div>
             <div class="form-group">
               <label>{{ 'Max Score' | t }}</label>
-              <input type="number" [(ngModel)]="gradeForm.maxScore" placeholder="e.g. 100" />
+              <input type="number" [(ngModel)]="gradeForm.maxScore" [placeholder]="'e.g. 100' | t" />
             </div>
             <div class="form-group">
               <label>{{ 'Letter Grade (optional)' | t }}</label>

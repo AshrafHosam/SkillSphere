@@ -177,6 +177,9 @@ public class AcademicService : IAcademicService
 
     public async Task<Result<SemesterDto>> CreateSemesterAsync(Guid tenantId, CreateSemesterRequest request, CancellationToken ct = default)
     {
+        if (request.EndDate <= request.StartDate)
+            return Result<SemesterDto>.Failure("End date must be after start date.");
+
         if (request.IsCurrent)
         {
             var currentSemesters = await _db.Semesters.Where(s => s.SchoolTenantId == tenantId && s.IsCurrent).ToListAsync(ct);
@@ -193,6 +196,9 @@ public class AcademicService : IAcademicService
     {
         var sem = await _db.Semesters.FindAsync([id], ct);
         if (sem == null) return Result<SemesterDto>.Failure("Semester not found.");
+
+        if (request.EndDate <= request.StartDate)
+            return Result<SemesterDto>.Failure("End date must be after start date.");
 
         if (request.IsCurrent && !sem.IsCurrent)
         {

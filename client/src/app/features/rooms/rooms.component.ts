@@ -16,6 +16,7 @@ import { I18nService } from '@core/i18n/i18n.service';
       <button class="btn btn-primary" (click)="showForm=!showForm">{{ (showForm ? 'Cancel' : '+ Add Room') | t }}</button>
     </div>
 
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ (editId ? 'Edit Room' : 'Add Room') | t }}</h4>
@@ -32,9 +33,9 @@ import { I18nService } from '@core/i18n/i18n.service';
           </div>
           <div class="form-group"><label>{{ 'Building' | t }}</label><input [(ngModel)]="form.building" [placeholder]="'e.g. Main Building' | t" /></div>
           <div class="form-group"><label>{{ 'Floor' | t }}</label><input type="number" [(ngModel)]="form.floor" /></div>
-          <div class="form-group"><label>{{ 'Capacity' | t }}</label><input type="number" [(ngModel)]="form.capacity" /></div>
+          <div class="form-group"><label>{{ 'Capacity' | t }}</label><input type="number" [(ngModel)]="form.capacity" min="1" /></div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="cancelEdit()">{{ 'Cancel' | t }}</button>
       </div>
     </div>
@@ -63,6 +64,7 @@ import { I18nService } from '@core/i18n/i18n.service';
           <table class="table">
             <thead><tr><th>{{ 'Code' | t }}</th><th>{{ 'Name' | t }}</th><th>{{ 'Type' | t }}</th><th>{{ 'Building' | t }}</th><th>{{ 'Floor' | t }}</th><th>{{ 'Capacity' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="7" class="text-center">{{ 'No rooms found.' | t }}</td></tr>
               <tr *ngFor="let r of items">
                 <td>{{r.code}}</td>
                 <td>
@@ -90,6 +92,8 @@ export class RoomsComponent implements OnInit {
   editId: string | null = null;
   filterType = '';
   roomTypes = Object.values(RoomType);
+  saving = false;
+  error = '';
   readonly i18n = inject(I18nService);
 
   constructor(private svc: RoomService) {}
@@ -97,24 +101,28 @@ export class RoomsComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.svc.getAll(this.filterType as RoomType || undefined).subscribe(d => this.items = d);
+    this.svc.getAll(this.filterType as RoomType || undefined).subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load rooms.' });
   }
 
   save() {
-    if (this.editId) {
-      this.svc.update(this.editId, this.form).subscribe(() => { this.cancelEdit(); this.load(); });
-    } else {
-      this.svc.create(this.form).subscribe(() => { this.cancelEdit(); this.load(); });
-    }
+    this.saving = true; this.error = '';
+    const obs = this.editId
+      ? this.svc.update(this.editId, this.form)
+      : this.svc.create(this.form);
+    obs.subscribe({ next: () => { this.saving = false; this.cancelEdit(); this.load(); }, error: () => { this.saving = false; this.error = 'Failed to save room.'; } });
   }
 
   edit(r: RoomDto) {
     this.editId = r.id;
     this.form = { code: r.code, name: r.name, nameAr: r.nameAr || '', roomType: r.roomType, building: r.building, floor: r.floor, capacity: r.capacity };
     this.showForm = true;
+    this.error = '';
   }
 
-  cancelEdit() { this.editId = null; this.form = { roomType: 'Classroom' }; this.showForm = false; }
+  cancelEdit() { this.editId = null; this.form = { roomType: 'Classroom' }; this.showForm = false; this.error = ''; }
 
-  remove(id: string) { this.svc.delete(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Delete this room?')) return;
+    this.svc.delete(id).subscribe({ next: () => this.load(), error: () => this.error = 'Failed to delete room.' });
+  }
 }

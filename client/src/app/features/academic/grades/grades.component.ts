@@ -10,6 +10,7 @@ import { I18nService } from '@core/i18n/i18n.service';
   standalone: true,
   imports: [CommonModule, FormsModule, TranslatePipe],
   template: `
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ (editId ? 'Edit Grade' : 'Add Grade') | t }}</h4>
@@ -17,11 +18,11 @@ import { I18nService } from '@core/i18n/i18n.service';
       </div>
       <div class="card-body">
         <div class="form-row">
-          <div class="form-group"><label>{{ 'Name (English)' | t }}</label><input [(ngModel)]="form.name" placeholder="e.g. Grade 1" /></div>
+          <div class="form-group"><label>{{ 'Name (English)' | t }}</label><input [(ngModel)]="form.name" [placeholder]="'e.g. Grade 1' | t" /></div>
           <div class="form-group"><label>{{ 'Name (Arabic)' | t }}</label><input [(ngModel)]="form.nameAr" placeholder="مثال: الصف الأول" dir="rtl" /></div>
-          <div class="form-group"><label>{{ 'Order Index' | t }}</label><input type="number" [(ngModel)]="form.orderIndex" /></div>
+          <div class="form-group"><label>{{ 'Order Index' | t }}</label><input type="number" [(ngModel)]="form.orderIndex" min="1" /></div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="cancelForm()">{{ 'Cancel' | t }}</button>
       </div>
     </div>
@@ -36,6 +37,7 @@ import { I18nService } from '@core/i18n/i18n.service';
           <table class="table">
             <thead><tr><th>{{ 'Name' | t }}</th><th>{{ 'Order' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="3" class="text-center">{{ 'No grades found.' | t }}</td></tr>
               <tr *ngFor="let g of items">
                 <td>
                   {{ i18n.lang() === 'ar' && g.nameAr ? g.nameAr : g.name }}
@@ -57,16 +59,21 @@ import { I18nService } from '@core/i18n/i18n.service';
 })
 export class GradesComponent implements OnInit {
   items: any[] = []; showForm = false; editId: string | null = null; form: any = {};
+  saving = false; error = '';
   readonly i18n = inject(I18nService);
   constructor(private svc: AcademicService) {}
   ngOnInit() { this.load(); }
-  load() { this.svc.getGrades().subscribe(d => this.items = d); }
-  openAdd() { this.editId = null; this.form = {}; this.showForm = true; }
-  openEdit(g: any) { this.editId = g.id; this.form = { name: g.name, nameAr: g.nameAr || '', orderIndex: g.orderIndex }; this.showForm = true; window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  cancelForm() { this.showForm = false; this.editId = null; this.form = {}; }
+  load() { this.svc.getGrades().subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load grades.' }); }
+  openAdd() { this.editId = null; this.form = {}; this.showForm = true; this.error = ''; }
+  openEdit(g: any) { this.editId = g.id; this.form = { name: g.name, nameAr: g.nameAr || '', orderIndex: g.orderIndex }; this.showForm = true; this.error = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  cancelForm() { this.showForm = false; this.editId = null; this.form = {}; this.error = ''; }
   save() {
+    this.saving = true; this.error = '';
     const obs = this.editId ? this.svc.updateGrade(this.editId, this.form) : this.svc.createGrade(this.form);
-    obs.subscribe(() => { this.cancelForm(); this.load(); });
+    obs.subscribe({ next: () => { this.saving = false; this.cancelForm(); this.load(); }, error: () => { this.saving = false; this.error = 'Failed to save grade.'; } });
   }
-  remove(id: string) { this.svc.deleteGrade(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Delete this grade?')) return;
+    this.svc.deleteGrade(id).subscribe({ next: () => this.load(), error: () => this.error = 'Failed to delete grade.' });
+  }
 }

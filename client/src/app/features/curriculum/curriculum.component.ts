@@ -14,6 +14,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
       <button class="btn btn-primary" (click)="showForm=!showForm">{{ (showForm ? 'Cancel' : '+ Add Contract') | t }}</button>
     </div>
 
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card" *ngIf="showForm">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ 'Add Curriculum Contract' | t }}</h4>
@@ -30,10 +31,10 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
           <div class="form-group"><label>{{ 'Subject' | t }}</label>
             <select [(ngModel)]="form.subjectId"><option value="">{{ 'Select' | t }}</option><option *ngFor="let s of subjects" [value]="s.id">{{s.name}}</option></select>
           </div>
-          <div class="form-group"><label>{{ 'Periods Per Week' | t }}</label><input type="number" [(ngModel)]="form.periodsPerWeek" /></div>
+          <div class="form-group"><label>{{ 'Periods Per Week' | t }}</label><input type="number" [(ngModel)]="form.periodsPerWeek" min="1" /></div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
-        <button class="btn btn-default" (click)="showForm=false">{{ 'Cancel' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
+        <button class="btn btn-default" (click)="showForm=false; error=''">{{ 'Cancel' | t }}</button>
       </div>
     </div>
 
@@ -61,6 +62,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
           <table class="table">
             <thead><tr><th>{{ 'Grade' | t }}</th><th>{{ 'Semester' | t }}</th><th>{{ 'Subject' | t }}</th><th>{{ 'Periods Per Week' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="5" class="text-center">{{ 'No contracts found.' | t }}</td></tr>
               <tr *ngFor="let c of items">
                 <td>{{c.gradeName}}</td><td>{{c.semesterName}}</td><td>{{c.subjectName}}</td><td>{{c.periodsPerWeek}}</td>
                 <td><button class="btn btn-sm btn-danger" (click)="remove(c.id)">{{ 'Remove' | t }}</button></td>
@@ -82,6 +84,8 @@ export class CurriculumComponent implements OnInit {
   form: any = {};
   filterGradeId = '';
   filterSemesterId = '';
+  saving = false;
+  error = '';
 
   constructor(private svc: CurriculumService, private academicSvc: AcademicService) {}
 
@@ -94,12 +98,23 @@ export class CurriculumComponent implements OnInit {
 
   load() {
     this.svc.getContracts(this.filterGradeId || undefined, this.filterSemesterId || undefined)
-      .subscribe(d => this.items = d);
+      .subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load contracts.' });
   }
 
   save() {
-    this.svc.setContract(this.form).subscribe(() => { this.showForm = false; this.form = {}; this.load(); });
+    if (!this.form.periodsPerWeek || this.form.periodsPerWeek < 1) {
+      this.error = 'Periods per week must be at least 1.';
+      return;
+    }
+    this.saving = true; this.error = '';
+    this.svc.setContract(this.form).subscribe({
+      next: () => { this.saving = false; this.showForm = false; this.form = {}; this.load(); },
+      error: () => { this.saving = false; this.error = 'Failed to save contract.'; }
+    });
   }
 
-  remove(id: string) { this.svc.removeContract(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Remove this contract?')) return;
+    this.svc.removeContract(id).subscribe({ next: () => this.load(), error: () => this.error = 'Failed to remove contract.' });
+  }
 }

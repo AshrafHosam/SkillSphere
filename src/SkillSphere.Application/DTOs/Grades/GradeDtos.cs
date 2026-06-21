@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SkillSphere.Application.DTOs.Grades;
 
 public class GradeRecordDto
@@ -15,16 +17,30 @@ public class GradeRecordDto
     public DateTime RecordedDate { get; set; }
 }
 
-public class CreateGradeRecordRequest
+public class CreateGradeRecordRequest : IValidatableObject
 {
+    [Required]
     public Guid StudentProfileId { get; set; }
+    [Required]
     public Guid SubjectId { get; set; }
+    [Required]
     public Guid SemesterId { get; set; }
+    [Range(0, 1000)]
     public decimal? Score { get; set; }
+    [MaxLength(10)]
     public string? LetterGrade { get; set; }
+    [Range(1, 1000)]
     public decimal? MaxScore { get; set; }
+    [MaxLength(50)]
     public string? AssessmentType { get; set; }
+    [MaxLength(500)]
     public string? Notes { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Score.HasValue && MaxScore.HasValue && Score > MaxScore)
+            yield return new ValidationResult("Score cannot exceed MaxScore.", [nameof(Score)]);
+    }
 }
 
 public class BehaviorFeedbackDto
@@ -40,9 +56,14 @@ public class BehaviorFeedbackDto
 
 public class CreateBehaviorFeedbackRequest
 {
+    [Required]
     public Guid StudentProfileId { get; set; }
+    [Required]
     public Guid SemesterId { get; set; }
+    [Required, MaxLength(50)]
     public string Category { get; set; } = string.Empty;
+    [MaxLength(500)]
     public string? Description { get; set; }
+    [Range(1, 5)]
     public int? Rating { get; set; }
 }
