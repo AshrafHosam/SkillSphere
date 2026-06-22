@@ -4,12 +4,13 @@ import { AuthService } from '@core/services/auth.service';
 import { DashboardService } from '@core/services/data.service';
 import { AdminDashboardDto, ManagerDashboardDto, TeacherDashboardDto, SupervisorDashboardDto, ParentDashboardDto } from '@core/models';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { RouterLink } from '@angular/router';
 import { ProgressRingComponent, ProgressRingSegment } from '../shared/progress-ring/progress-ring.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, ProgressRingComponent],
+  imports: [CommonModule, TranslatePipe, RouterLink, ProgressRingComponent],
   template: `
     <!-- Admin / SuperAdmin Dashboard -->
     <div *ngIf="auth.userRole === 'SchoolAdmin' || auth.userRole === 'PlatformSuperAdmin'">
@@ -113,7 +114,7 @@ import { ProgressRingComponent, ProgressRingSegment } from '../shared/progress-r
     <div *ngIf="auth.userRole === 'SchoolManager'">
       <div class="row">
         <div class="col-md-3">
-          <div class="card card-stats" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'stat-pink' : 'stat-mint'">
+          <div class="card card-stats" [ngClass]="(managerData?.missingAttendance || 0) > 0 ? 'stat-pink' : 'stat-mint'" [routerLink]="['/attendance']" style="cursor:pointer">
             <div class="card-header card-header-icon">
               <div class="card-icon"><i class="material-icons">fact_check</i></div>
               <p class="card-category">{{ 'Missing Attendance' | t }}</p>
@@ -123,7 +124,7 @@ import { ProgressRingComponent, ProgressRingSegment } from '../shared/progress-r
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card card-stats" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'stat-peach' : 'stat-mint'">
+          <div class="card card-stats" [ngClass]="(managerData?.missingWeeklyReports || 0) > 0 ? 'stat-peach' : 'stat-mint'" [routerLink]="['/weekly-reports']" style="cursor:pointer">
             <div class="card-header card-header-icon">
               <div class="card-icon"><i class="material-icons">summarize</i></div>
               <p class="card-category">{{ 'Missing Reports' | t }}</p>
@@ -133,7 +134,7 @@ import { ProgressRingComponent, ProgressRingSegment } from '../shared/progress-r
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card card-stats stat-blue">
+          <div class="card card-stats stat-blue" [routerLink]="['/timetable']" style="cursor:pointer">
             <div class="card-header card-header-icon">
               <div class="card-icon"><i class="material-icons">schedule</i></div>
               <p class="card-category">{{ 'Timetable Conflicts' | t }}</p>
@@ -143,7 +144,7 @@ import { ProgressRingComponent, ProgressRingSegment } from '../shared/progress-r
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card card-stats" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'stat-pink' : 'stat-mint'">
+          <div class="card card-stats" [ngClass]="(managerData?.studentRiskQueue || 0) > 0 ? 'stat-pink' : 'stat-mint'" [routerLink]="['/attendance']" style="cursor:pointer">
             <div class="card-header card-header-icon">
               <div class="card-icon"><i class="material-icons">health_and_safety</i></div>
               <p class="card-category">{{ 'Students at Risk' | t }}</p>

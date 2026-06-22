@@ -263,7 +263,7 @@ export class GradesRecordsComponent implements OnInit {
       const profileId = this.auth.profileId;
       if (profileId) {
         this.academicSvc.getSemesters().subscribe(semesters => {
-          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          const activeSemester = semesters.find((s: any) => s.isCurrent) || semesters[0];
           if (activeSemester) {
             this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
               this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {

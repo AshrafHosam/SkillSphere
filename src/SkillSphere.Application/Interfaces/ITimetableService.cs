@@ -8,6 +8,7 @@ public interface ITimetableService
     // Versions
     Task<Result<List<TimetableVersionDto>>> GetVersionsAsync(Guid tenantId, Guid? groupId = null, Guid? semesterId = null, CancellationToken ct = default);
     Task<Result<TimetableVersionDto>> CreateVersionAsync(Guid tenantId, CreateTimetableVersionRequest request, CancellationToken ct = default);
+    Task<Result> DeleteVersionAsync(Guid versionId, CancellationToken ct = default);
 
     // Entries
     Task<Result<List<TimetableEntryDto>>> GetEntriesAsync(Guid versionId, CancellationToken ct = default);

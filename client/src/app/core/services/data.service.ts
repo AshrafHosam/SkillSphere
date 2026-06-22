@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import {
   TenantDto, CreateTenantRequest, UpdateTenantRequest, FeatureFlagDto,
@@ -98,6 +97,7 @@ export class TimetableService {
   validate(versionId: string): Observable<TimetableValidationError[]> { return this.api.post(`timetable/versions/${versionId}/validate`); }
   publish(versionId: string): Observable<void> { return this.api.post(`timetable/versions/${versionId}/publish`); }
   archive(versionId: string): Observable<void> { return this.api.post(`timetable/versions/${versionId}/archive`); }
+  deleteVersion(versionId: string): Observable<void> { return this.api.delete(`timetable/versions/${versionId}`); }
   getTeacherSchedule(teacherProfileId: string, semesterId: string): Observable<TimetableEntryDto[]> {
     return this.api.get(`timetable/teacher/${teacherProfileId}`, { semesterId });
   }

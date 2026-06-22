@@ -31,11 +31,12 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
             <select [(ngModel)]="form.gradeId"><option value="">{{ 'Any Grade' | t }}</option><option *ngFor="let g of grades" [value]="g.id">{{g.name}}</option></select>
           </div>
         </div>
-        <button class="btn btn-primary" (click)="save()">{{ 'Save' | t }}</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="showForm=false">{{ 'Cancel' | t }}</button>
       </div>
     </div>
 
+    <div class="alert alert-danger" *ngIf="error">{{error}}</div>
     <div class="card">
       <div class="card-header card-header-info">
         <h4 class="card-title">{{ 'All Links' | t }}</h4>
@@ -46,6 +47,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
           <table class="table">
             <thead><tr><th>{{ 'Teacher' | t }}</th><th>{{ 'Subject' | t }}</th><th>{{ 'Grade' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
             <tbody>
+              <tr *ngIf="!items.length"><td colspan="4" class="text-center">{{ 'No teacher-subject links found.' | t }}</td></tr>
               <tr *ngFor="let l of items">
                 <td>{{l.teacherName}}</td><td>{{l.subjectName}}</td><td>{{l.gradeName}}</td>
                 <td><button class="btn btn-sm btn-danger" (click)="remove(l.id)">{{ 'Remove' | t }}</button></td>
@@ -65,6 +67,8 @@ export class TeacherSubjectLinksComponent implements OnInit {
   grades: any[] = [];
   showForm = false;
   form: any = {};
+  saving = false;
+  error = '';
 
   constructor(
     private svc: TeacherSubjectLinkService,
@@ -79,13 +83,28 @@ export class TeacherSubjectLinksComponent implements OnInit {
     this.userSvc.getTeachers().subscribe((u: any) => this.teachers = u.items || u);
   }
 
-  load() { this.svc.getLinks().subscribe(d => this.items = d); }
+  load() { this.svc.getLinks().subscribe({ next: d => this.items = d, error: () => this.error = 'Failed to load links.' }); }
 
   save() {
+    if (!this.form.teacherProfileId || !this.form.subjectId) {
+      this.error = 'Please select a teacher and a subject.';
+      return;
+    }
+    this.saving = true;
+    this.error = '';
     const payload = { ...this.form };
     if (!payload.gradeId) { delete payload.gradeId; }
-    this.svc.create(payload).subscribe(() => { this.showForm = false; this.form = {}; this.load(); });
+    this.svc.create(payload).subscribe({
+      next: () => { this.saving = false; this.showForm = false; this.form = {}; this.load(); },
+      error: (err: any) => { this.saving = false; this.error = err?.error?.error || err?.error?.message || 'Failed to save link.'; }
+    });
   }
 
-  remove(id: string) { this.svc.remove(id).subscribe(() => this.load()); }
+  remove(id: string) {
+    if (!confirm('Remove this teacher-subject link?')) return;
+    this.svc.remove(id).subscribe({
+      next: () => this.load(),
+      error: () => this.error = 'Failed to remove link.'
+    });
+  }
 }

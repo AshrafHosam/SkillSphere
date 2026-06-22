@@ -340,6 +340,16 @@ public class TimetableService : ITimetableService
         return Result.Success();
     }
 
+    public async Task<Result> DeleteVersionAsync(Guid versionId, CancellationToken ct)
+    {
+        var version = await _db.TimetableVersions.FindAsync([versionId], ct);
+        if (version == null) return Result.Failure("Version not found.");
+        if (version.Status != TimetableStatus.Draft) return Result.Failure("Only Draft versions can be deleted.");
+        version.IsDeleted = true;
+        await _db.SaveChangesAsync(ct);
+        return Result.Success();
+    }
+
     // --- Query ---
 
     public async Task<Result<List<TimetableEntryDto>>> GetTeacherScheduleAsync(Guid teacherProfileId, Guid semesterId, CancellationToken ct)

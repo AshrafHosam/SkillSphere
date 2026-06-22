@@ -432,8 +432,12 @@ export class AttendanceComponent implements OnInit {
     // Load semesters for all roles
     this.academicSvc.getSemesters().subscribe(semesters => {
       this.semesters = semesters;
-      const active = semesters.find((s: any) => s.isActive) || semesters[0];
-      if (active) this.complianceSemesterId = active.id;
+      const active = semesters.find((s: any) => s.isCurrent) || semesters[0];
+      if (active) {
+        this.complianceSemesterId = active.id;
+        if (this.mode === 'compliance') this.loadCompliance();
+        if (this.mode === 'session') this.loadSessionCompliance();
+      }
     });
 
     // Auto-load records for view tab so parents/admin see data immediately
@@ -445,7 +449,7 @@ export class AttendanceComponent implements OnInit {
       const profileId = this.auth.profileId;
       if (profileId) {
         this.academicSvc.getSemesters().subscribe(semesters => {
-          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          const activeSemester = semesters.find((s: any) => s.isCurrent) || semesters[0];
           if (activeSemester) {
             this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
               this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {

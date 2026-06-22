@@ -246,6 +246,15 @@ export class AssignmentsComponent implements OnInit {
     const selected = this.unassignedStudents.filter(s => s.selected);
     if (!selected.length) return;
 
+    const group = this.filteredGroups.find(g => g.id === this.selectedGroupId);
+    if (group) {
+      const remaining = group.capacity - (group.studentCount ?? 0);
+      if (selected.length > remaining) {
+        this.errorMsg = `Cannot assign ${selected.length} student(s): group capacity is ${group.capacity}, currently has ${group.studentCount ?? 0}, only ${remaining} spot(s) left.`;
+        return;
+      }
+    }
+
     this.submitting = true;
     this.successMsg = '';
     this.errorMsg = '';

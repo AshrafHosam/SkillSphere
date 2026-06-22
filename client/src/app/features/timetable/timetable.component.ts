@@ -61,6 +61,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
                 <button class="btn btn-sm" (click)="loadEntries(v.id)">{{ 'View' | t }}</button>
                 <button class="btn btn-sm btn-info" *ngIf="v.status==='Draft'" (click)="validateVersion(v.id)">{{ 'Validate' | t }}</button>
                 <button class="btn btn-sm btn-success" *ngIf="v.status==='Draft'" (click)="publishVersion(v.id)">{{ 'Publish' | t }}</button>
+                <button class="btn btn-sm btn-danger" *ngIf="v.status==='Draft'" (click)="deleteVersion(v.id)">{{ 'Delete' | t }}</button>
                 <button class="btn btn-sm btn-warning" *ngIf="v.status==='Published'" (click)="archiveVersion(v.id)">{{ 'Archive' | t }}</button>
               </td></tr></tbody></table>
         </div>
@@ -115,7 +116,8 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
             </div>
             <div class="form-group"><label>{{ 'Room' | t }}</label>
               <select [(ngModel)]="entryForm.roomId"><option value="">{{ 'Select' | t }}</option>
-                <option *ngFor="let r of rooms" [value]="r.id">{{r.name}} ({{r.roomType}})</option></select>
+                <option *ngFor="let r of filteredRooms" [value]="r.id">{{r.name}} ({{r.roomType}})</option></select>
+              <small *ngIf="entryForm.subjectId && filteredRooms.length < rooms.length" class="text-muted">{{ 'Filtered by subject room type' | t }}</small>
             </div>
           </div>
           <button class="btn btn-primary" (click)="addEntry()">{{ 'Add Entry' | t }}</button>
@@ -143,6 +145,7 @@ export class TimetableComponent implements OnInit {
   filteredTeachers: TeacherProfileDto[] = [];
   teacherSubjectLinks: TeacherSubjectLinkDto[] = [];
   rooms: RoomDto[] = [];
+  filteredRooms: RoomDto[] = [];
   periods: PeriodDefinitionDto[] = [];
   validationErrors: TimetableValidationError[] = [];
   showVersionForm = false;
@@ -168,7 +171,7 @@ export class TimetableComponent implements OnInit {
     this.academicSvc.getSemesters().subscribe(s => this.semesters = s);
     this.academicSvc.getGroups().subscribe(g => this.groups = g);
     this.academicSvc.getSubjects().subscribe(s => this.subjects = s);
-    this.roomSvc.getAll().subscribe(r => this.rooms = r);
+    this.roomSvc.getAll().subscribe(r => { this.rooms = r; this.filteredRooms = r; });
     this.periodSvc.getAll().subscribe(p => this.periods = p.filter((x: PeriodDefinitionDto) => !x.isBreak).sort((a: PeriodDefinitionDto, b: PeriodDefinitionDto) => a.periodNumber - b.periodNumber));
     this.userSvc.getTeachers().subscribe((r: any) => this.teachers = r.items);
     this.teacherSubjectLinkSvc.getLinks().subscribe(links => this.teacherSubjectLinks = links);
@@ -176,8 +179,10 @@ export class TimetableComponent implements OnInit {
 
   onSubjectChange() {
     this.entryForm.teacherProfileId = '';
+    this.entryForm.roomId = '';
     if (!this.entryForm.subjectId) {
       this.filteredTeachers = [];
+      this.filteredRooms = this.rooms;
       return;
     }
     const linkedTeacherIds = new Set(
@@ -186,6 +191,11 @@ export class TimetableComponent implements OnInit {
         .map(l => l.teacherProfileId)
     );
     this.filteredTeachers = this.teachers.filter(t => linkedTeacherIds.has(t.profileId));
+
+    const subject = this.subjects.find(s => s.id === this.entryForm.subjectId);
+    this.filteredRooms = subject?.requiredRoomType
+      ? this.rooms.filter(r => r.roomType === subject.requiredRoomType)
+      : this.rooms;
   }
 
   groupGradeName(groupId: string): string {
@@ -210,18 +220,30 @@ export class TimetableComponent implements OnInit {
   }
 
   publishVersion(id: string) {
+    if (!confirm('Publish this timetable? The current published version for this group will be archived.')) return;
     this.timetableSvc.publish(id).subscribe(() => this.reloadVersions());
   }
 
   archiveVersion(id: string) {
+    if (!confirm('Archive this published timetable?')) return;
     this.timetableSvc.archive(id).subscribe(() => this.reloadVersions());
+  }
+
+  deleteVersion(id: string) {
+    if (!confirm('Delete this draft timetable? This cannot be undone.')) return;
+    this.timetableSvc.deleteVersion(id).subscribe(() => {
+      if (this.selectedVersionId === id) { this.selectedVersionId = null; this.entries = []; }
+      this.reloadVersions();
+    });
   }
 
   loadEntries(versionId: string) {
     this.selectedVersionId = versionId;
     const v = this.versions.find(x => x.id === versionId);
     this.selectedVersionStatus = v?.status ?? null;
-    this.timetableSvc.getEntries(versionId).subscribe(e => this.entries = e);
+    this.timetableSvc.getEntries(versionId).subscribe(e =>
+      this.entries = e.slice().sort((a, b) => a.dayOfWeek - b.dayOfWeek || (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+    );
   }
 
   removeEntry(id: string) {

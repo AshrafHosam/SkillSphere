@@ -40,7 +40,6 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
             <select [(ngModel)]="form.role">
               <option value="">{{ 'Select Role' | t }}</option>
               <option value="SchoolAdmin">{{ 'School Admin' | t }}</option>
-              <option value="SchoolManager">{{ 'School Manager' | t }}</option>
               <option value="Teacher">{{ 'Teacher' | t }}</option>
               <option value="TeacherSupervisor">{{ 'Teacher Supervisor' | t }}</option>
               <option value="Parent">{{ 'Parent' | t }}</option>

@@ -5,7 +5,7 @@ import { WeeklyReportService, AssignmentService, TimetableService, AcademicServi
 import { AuthService } from '@core/services/auth.service';
 import { LocalDatePipe } from '@core/pipes/local-date.pipe';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
-import { StudentAssignmentDto, WeeklyReportDto, CreateWeeklyReportRequest, WeeklyReportItemRequest } from '@core/models';
+import { StudentAssignmentDto, WeeklyReportDto, CreateWeeklyReportRequest } from '@core/models';
 
 interface ReportItemEntry {
   attributeName: string;
@@ -60,7 +60,7 @@ interface SessionOption {
           </div>
           <div class="form-group">
             <label>{{ 'Week Number' | t }}</label>
-            <input type="number" [(ngModel)]="createForm.weekNumber" min="1" max="52" placeholder="e.g. 12" />
+            <input type="number" [(ngModel)]="createForm.weekNumber" min="1" max="52" [placeholder]="'e.g. 12' | t" />
           </div>
         </div>
         <div class="form-row">
@@ -130,6 +130,12 @@ interface SessionOption {
         <p class="card-category">{{ 'All weekly reports for your assignments' | t }}</p>
       </div>
       <div class="card-body">
+        <div class="filter-row" style="margin-bottom:12px">
+          <select [(ngModel)]="filterSemesterId" (ngModelChange)="loadReports()">
+            <option value="">{{ 'All Semesters' | t }}</option>
+            <option *ngFor="let s of semesters" [value]="s.id">{{s.name}}</option>
+          </select>
+        </div>
         <div class="table-responsive">
           <table class="table">
             <thead><tr><th>{{ 'Student' | t }}</th><th>{{ 'Teacher' | t }}</th><th>{{ 'Week' | t }}</th><th>{{ 'Period' | t }}</th><th>{{ 'Status' | t }}</th><th>{{ 'Actions' | t }}</th></tr></thead>
@@ -180,6 +186,8 @@ export class WeeklyReportsComponent implements OnInit {
   reports: WeeklyReportDto[] = [];
   selectedReport: WeeklyReportDto | null = null;
   isTeacher = false;
+  semesters: any[] = [];
+  filterSemesterId = '';
   sessionOptions: SessionOption[] = [];
   createStudents: StudentAssignmentDto[] = [];
 
@@ -219,13 +227,18 @@ export class WeeklyReportsComponent implements OnInit {
 
   ngOnInit() {
     this.isTeacher = this.auth.userRole === 'Teacher';
-    this.reportSvc.getReports().subscribe(r => this.reports = r.items || []);
+    this.academicSvc.getSemesters().subscribe(semesters => {
+      this.semesters = semesters;
+      const activeSemester = semesters.find((s: any) => s.isCurrent) || semesters[0];
+      if (activeSemester) this.filterSemesterId = activeSemester.id;
+      this.loadReports();
+    });
 
     if (this.isTeacher) {
       const profileId = this.auth.profileId;
       if (profileId) {
         this.academicSvc.getSemesters().subscribe(semesters => {
-          const activeSemester = semesters.find((s: any) => s.isActive) || semesters[0];
+          const activeSemester = semesters.find((s: any) => s.isCurrent) || semesters[0];
           if (activeSemester) {
             this.timetableSvc.getTeacherSchedule(profileId, activeSemester.id).subscribe(entries => {
               this.timetableSvc.getVersions(undefined, activeSemester.id).subscribe(versions => {
@@ -264,6 +277,12 @@ export class WeeklyReportsComponent implements OnInit {
       const diff = now.getTime() - start.getTime();
       this.createForm.weekNumber = Math.ceil((diff / 86400000 + start.getDay() + 1) / 7);
     }
+  }
+
+  loadReports() {
+    const params: any = {};
+    if (this.filterSemesterId) params.semesterId = this.filterSemesterId;
+    this.reportSvc.getReports(params).subscribe(r => this.reports = r.items || []);
   }
 
   onCreateSessionChange() {

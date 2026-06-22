@@ -29,6 +29,10 @@ import { I18nService } from '@core/i18n/i18n.service';
           </div>
           <div class="form-group"><label>{{ 'Start Date' | t }}</label><input type="date" [(ngModel)]="form.startDate" /></div>
           <div class="form-group"><label>{{ 'End Date' | t }}</label><input type="date" [(ngModel)]="form.endDate" /></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:24px">
+            <input type="checkbox" [(ngModel)]="form.isCurrent" id="isCurrentChk" />
+            <label for="isCurrentChk" style="margin:0;cursor:pointer">{{ 'Mark as Current Semester' | t }}</label>
+          </div>
         </div>
         <button class="btn btn-primary" (click)="save()" [disabled]="saving">{{ (saving ? 'Saving...' : 'Save') | t }}</button>
         <button class="btn btn-default" (click)="cancelForm()">{{ 'Cancel' | t }}</button>

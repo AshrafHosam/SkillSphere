@@ -79,6 +79,14 @@ public class TimetableController : ControllerBase
         return r.IsSuccess ? Ok() : BadRequest(new { error = r.Error });
     }
 
+    [HttpDelete("versions/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
+    public async Task<IActionResult> DeleteVersion(Guid id, CancellationToken ct)
+    {
+        var r = await _timetableService.DeleteVersionAsync(id, ct);
+        return r.IsSuccess ? NoContent() : BadRequest(new { error = r.Error });
+    }
+
     // ---- Schedules ----
     [HttpGet("teacher/{teacherProfileId:guid}")]
     public async Task<IActionResult> GetTeacherSchedule(Guid teacherProfileId, [FromQuery] Guid semesterId, CancellationToken ct)
