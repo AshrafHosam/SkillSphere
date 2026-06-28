@@ -34,7 +34,7 @@ public class TimetableEntryDto
     public Guid RoomId { get; set; }
     public string RoomName { get; set; } = string.Empty;
     public RoomType RoomType { get; set; }
-    public DayOfWeek DayOfWeek { get; set; }
+    public int DayOfWeek { get; set; }
     public Guid PeriodDefinitionId { get; set; }
     public int PeriodNumber { get; set; }
     public string PeriodLabel { get; set; } = string.Empty;

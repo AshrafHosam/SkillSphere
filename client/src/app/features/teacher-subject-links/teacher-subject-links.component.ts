@@ -22,7 +22,7 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
       <div class="card-body">
         <div class="form-row">
           <div class="form-group"><label>{{ 'Teacher' | t }}</label>
-            <select [(ngModel)]="form.teacherProfileId"><option value="">{{ 'Select' | t }}</option><option *ngFor="let t of teachers" [value]="t.id">{{t.fullName}}</option></select>
+            <select [(ngModel)]="form.teacherProfileId"><option value="">{{ 'Select' | t }}</option><option *ngFor="let t of teachers" [value]="t.profileId">{{t.fullName}}</option></select>
           </div>
           <div class="form-group"><label>{{ 'Subject' | t }}</label>
             <select [(ngModel)]="form.subjectId"><option value="">{{ 'Select' | t }}</option><option *ngFor="let s of subjects" [value]="s.id">{{s.name}}</option></select>

@@ -407,7 +407,7 @@ public class TimetableService : ITimetableService
         TeacherProfileId = e.TeacherProfileId,
         TeacherName = e.TeacherProfile.User.FirstName + " " + e.TeacherProfile.User.LastName,
         RoomId = e.RoomId, RoomName = e.Room.Name, RoomType = e.Room.RoomType,
-        DayOfWeek = e.DayOfWeek,
+        DayOfWeek = (int)e.DayOfWeek,
         PeriodDefinitionId = e.PeriodDefinitionId, PeriodNumber = e.PeriodDefinition.PeriodNumber,
         PeriodLabel = e.PeriodDefinition.Label, StartTime = e.PeriodDefinition.StartTime, EndTime = e.PeriodDefinition.EndTime
     };

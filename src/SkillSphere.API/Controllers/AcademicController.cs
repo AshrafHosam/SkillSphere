@@ -8,7 +8,7 @@ namespace SkillSphere.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "SchoolAdmin,SchoolManager")]
+[Authorize]
 public class AcademicController : ControllerBase
 {
     private readonly IAcademicService _academicService;
@@ -28,6 +28,7 @@ public class AcademicController : ControllerBase
     public async Task<IActionResult> GetGrades(CancellationToken ct) => Ok((await _academicService.GetGradesAsync(TenantId, ct)).Data);
 
     [HttpPost("grades")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateGrade([FromBody] CreateGradeRequest req, CancellationToken ct)
     {
         var r = await _academicService.CreateGradeAsync(TenantId, req, ct);
@@ -35,6 +36,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpPut("grades/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> UpdateGrade(Guid id, [FromBody] CreateGradeRequest req, CancellationToken ct)
     {
         var r = await _academicService.UpdateGradeAsync(id, req, ct);
@@ -42,6 +44,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpDelete("grades/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> DeleteGrade(Guid id, CancellationToken ct)
     {
         var r = await _academicService.DeleteGradeAsync(id, ct);
@@ -54,6 +57,7 @@ public class AcademicController : ControllerBase
     public async Task<IActionResult> GetGroups([FromQuery] Guid? gradeId, CancellationToken ct) => Ok((await _academicService.GetGroupsAsync(TenantId, gradeId, ct)).Data);
 
     [HttpPost("groups")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest req, CancellationToken ct)
     {
         var r = await _academicService.CreateGroupAsync(TenantId, req, ct);
@@ -61,6 +65,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpPut("groups/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] CreateGroupRequest req, CancellationToken ct)
     {
         var r = await _academicService.UpdateGroupAsync(id, req, ct);
@@ -68,6 +73,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpDelete("groups/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> DeleteGroup(Guid id, CancellationToken ct)
     {
         var r = await _academicService.DeleteGroupAsync(id, ct);
@@ -80,6 +86,7 @@ public class AcademicController : ControllerBase
     public async Task<IActionResult> GetSubjects(CancellationToken ct) => Ok((await _academicService.GetSubjectsAsync(TenantId, ct)).Data);
 
     [HttpPost("subjects")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateSubject([FromBody] CreateSubjectRequest req, CancellationToken ct)
     {
         var r = await _academicService.CreateSubjectAsync(TenantId, req, ct);
@@ -87,6 +94,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpPut("subjects/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> UpdateSubject(Guid id, [FromBody] CreateSubjectRequest req, CancellationToken ct)
     {
         var r = await _academicService.UpdateSubjectAsync(id, req, ct);
@@ -94,6 +102,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpDelete("subjects/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> DeleteSubject(Guid id, CancellationToken ct)
     {
         var r = await _academicService.DeleteSubjectAsync(id, ct);
@@ -106,6 +115,7 @@ public class AcademicController : ControllerBase
     public async Task<IActionResult> GetDepartments(CancellationToken ct) => Ok((await _academicService.GetDepartmentsAsync(TenantId, ct)).Data);
 
     [HttpPost("departments")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateDepartment([FromBody] CreateDepartmentRequest req, CancellationToken ct)
     {
         var r = await _academicService.CreateDepartmentAsync(TenantId, req, ct);
@@ -113,6 +123,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpPut("departments/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> UpdateDepartment(Guid id, [FromBody] CreateDepartmentRequest req, CancellationToken ct)
     {
         var r = await _academicService.UpdateDepartmentAsync(id, req, ct);
@@ -120,6 +131,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpDelete("departments/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> DeleteDepartment(Guid id, CancellationToken ct)
     {
         var r = await _academicService.DeleteDepartmentAsync(id, ct);
@@ -132,6 +144,7 @@ public class AcademicController : ControllerBase
     public async Task<IActionResult> GetSemesters(CancellationToken ct) => Ok((await _academicService.GetSemestersAsync(TenantId, ct)).Data);
 
     [HttpPost("semesters")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> CreateSemester([FromBody] CreateSemesterRequest req, CancellationToken ct)
     {
         var r = await _academicService.CreateSemesterAsync(TenantId, req, ct);
@@ -139,6 +152,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpPut("semesters/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> UpdateSemester(Guid id, [FromBody] CreateSemesterRequest req, CancellationToken ct)
     {
         var r = await _academicService.UpdateSemesterAsync(id, req, ct);
@@ -146,6 +160,7 @@ public class AcademicController : ControllerBase
     }
 
     [HttpDelete("semesters/{id:guid}")]
+    [Authorize(Roles = "SchoolAdmin,SchoolManager")]
     public async Task<IActionResult> DeleteSemester(Guid id, CancellationToken ct)
     {
         var r = await _academicService.DeleteSemesterAsync(id, ct);
